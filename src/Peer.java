@@ -11,19 +11,33 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
-public class Peer implements PeerInterface{
+public class Peer extends Node implements PeerInterface{
     //Args
     private static Integer peer_id;
     private static Storage storage;
-    private static ArrayList<Node> fingerTable = new ArrayList<>();
     private static String acc_point;
-    private static String initAddress;
+    private static String ipAddress;
+    private static int port;
+    private static String initIpAddress;
     private static int initPort;
+    private static Node[] fingerTable = new Node[256];
     private static ScheduledThreadPoolExecutor threadExecutor; //TODO use this instead of thread
+    private static Node predNode;
+    private static Node succNode;
 
-    public Peer(Integer id) {
+    public Peer(Integer id, String ipAddress, int port) {
+        super(ipAddress, port);
         peer_id = id;
+        succNode = this;
     }
+
+    public Peer(Integer id, String ipAddress, int port, String initAddress, int initPort) {
+        super(ipAddress, port);
+        peer_id = id;
+        succNode = this;
+        this.join(new Node(initAddress, initPort));
+    }
+
 
     public static void main(String args[]) {
         System.out.println("Starting Peer Protocol");
@@ -35,7 +49,11 @@ public class Peer implements PeerInterface{
         threadExecutor = (ScheduledThreadPoolExecutor) Executors.newScheduledThreadPool(10);
 
         //Create initiator peer
-        Peer peer = new Peer(peer_id);
+        Peer peer;
+        if (args.length == 6)
+            peer = new Peer(peer_id, ipAddress, port, initIpAddress, initPort);
+        else peer = new Peer(peer_id, ipAddress, port);
+
         System.out.println("Started peer with id " + peer_id);
 
         //Establish RMI communication between TestApp and Peer
@@ -60,10 +78,15 @@ public class Peer implements PeerInterface{
         peer_id = Integer.parseInt(args[0]);
         //Parse access point
         acc_point = args[1];
-        //Parse initAddress
-        initAddress = args[2];
-        //Parse initPort
-        initPort = Integer.parseInt(args[3]);
+        //Parse address
+        ipAddress = args[2];
+        //Parse port
+        port = Integer.parseInt(args[3]);
+        //Parse init
+        if (args.length == 6) {
+            initIpAddress = args[4];
+            initPort = Integer.parseInt(args[5]);
+        }
 
         return true;
     }
@@ -151,6 +174,10 @@ public class Peer implements PeerInterface{
 
     public static int getPeer_id() {
         return peer_id;
+    }
+
+    public void join(Node initNode) {
+        succNode = initNode.findSucc(this);
     }
 
 

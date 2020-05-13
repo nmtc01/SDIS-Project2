@@ -42,9 +42,6 @@ public class ReceivedMessagesManager implements Runnable {
             case "CHUNK":
                 manageChunk(senderId, fileId, chunkNo, body);
                 break;
-            case "CHUNKENH":
-                manageChunkEnh(senderId, fileId, chunkNo);
-                break;
             case "REMOVED":
                 manageRemoved(senderId, fileId, chunkNo);
                 break;
@@ -111,12 +108,6 @@ public class ReceivedMessagesManager implements Runnable {
         System.out.printf("Received message: %s CHUNK %d %s %d\n", senderId, fileId, chunkNo);
         String chunkKey = fileId+"-"+chunkNo;
         Peer.getStorage().getRestoreChunks().putIfAbsent(chunkKey, body);
-    }
-
-    private void manageChunkEnh(int senderId, String fileId, int chunkNo) {
-        if (senderId == Peer.getPeer_id())
-            return;
-        System.out.printf("Received message: %s CHUNK %d %s %d\n", senderId, fileId, chunkNo);
     }
 
     private void manageDelete(int senderId, String fileId) {
