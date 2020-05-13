@@ -177,8 +177,25 @@ public class Peer extends Node implements PeerInterface{
     }
 
     public void join(Node initNode) {
-        succNode = initNode.findSucc(this);
+        succNode = initNode.requestFindSucc(this);
     }
+
+    //TODO verify
+    /*public Node findSucc(Peer peer) {
+        if (peer.getNodeId().equals(this.id)) {
+            //TODO not this?
+            return this;
+        }
+        else {
+            Node newNode = closestPrecedNode(peer.getNodeId());
+            return newNode.findSucc(peer);
+        }
+    }
+
+    public Node closestPrecedNode(String id) {
+        //TODO
+        return null;
+    }*/
 
 
     @Override
