@@ -9,7 +9,7 @@ public class RestoreChunks implements Runnable {
 
     @Override
     public void run() {
-        Storage peerStorage = PeerProtocol.getPeer().getStorage();
+        Storage peerStorage = Peer.getStorage();
         File file = new File(this.filename);
         peerStorage.restoreFile(file);
     }

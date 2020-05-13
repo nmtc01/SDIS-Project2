@@ -1,15 +1,13 @@
 public class ReceivedDelete implements Runnable {
-    private String version;
     String fileId;
 
-    public ReceivedDelete(String version, String fileId) {
-        this.version = version;
+    public ReceivedDelete(String fileId) {
         this.fileId = fileId;
     }
 
     @Override
     public void run() {
-        Storage peerStorage = PeerProtocol.getPeer().getStorage();
+        Storage peerStorage = Peer.getStorage();
         peerStorage.deleteChunk(fileId);
     }
 }

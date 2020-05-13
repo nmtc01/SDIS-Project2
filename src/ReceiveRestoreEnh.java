@@ -1,7 +1,5 @@
 import java.io.*;
 import java.net.*;
-import java.util.Arrays;
-import java.util.Random;
 
 public class ReceiveRestoreEnh implements Runnable {
     private String fileId;
@@ -29,7 +27,7 @@ public class ReceiveRestoreEnh implements Runnable {
         try {
             ObjectInputStream in = new ObjectInputStream(this.echoSocket.getInputStream());
             byte[] body = in.readAllBytes();
-            PeerProtocol.getPeer().getStorage().getRestoreChunks().putIfAbsent(this.fileId+"-"+this.chunkNo, body);
+            Peer.getStorage().getRestoreChunks().putIfAbsent(this.fileId+"-"+this.chunkNo, body);
         }
         catch (IOException e) {
             e.printStackTrace();

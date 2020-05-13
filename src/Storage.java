@@ -21,7 +21,6 @@ public class Storage implements java.io.Serializable {
 
     public Storage(int peer_id) {
         this.free_space = 1000000000;
-        System.out.println(this.free_space);
         createPeerDirectory(peer_id);
     }
 
@@ -165,7 +164,7 @@ public class Storage implements java.io.Serializable {
 
                 chunkIterator.remove();
                 decrementChunkOccurences(chunk.getFile_id()+"-"+chunk.getChunk_no());
-                remove_peer_chunks(chunk.getFile_id()+"-"+chunk.getChunk_no(), PeerProtocol.getPeer().getPeer_id());
+                remove_peer_chunks(chunk.getFile_id()+"-"+chunk.getChunk_no(), Peer.getPeer_id());
             }
         }
         String fileFolder = directory.getPath() + "/file" + fileId;
@@ -199,7 +198,7 @@ public class Storage implements java.io.Serializable {
         decFreeSpace(chunk.getContent().length);
 
         //Add to peers_with_chunks
-        add_peer_chunks(chunk.getFile_id()+"-"+chunk.getChunk_no(), PeerProtocol.getPeer().getPeer_id());
+        add_peer_chunks(chunk.getFile_id()+"-"+chunk.getChunk_no(), Peer.getPeer_id());
     }
 
     public void exportChunk(File directory, Chunk chunk) {
@@ -230,7 +229,6 @@ public class Storage implements java.io.Serializable {
 
     public void decrementChunkOccurences(String key) {
         if (this.chunks_current_degrees.containsKey(key) && this.chunks_current_degrees.get(key) != 0) {
-            System.out.println("decrementei");
             this.chunks_current_degrees.replace(key, this.chunks_current_degrees.get(key) - 1);
         }
     }
@@ -279,7 +277,7 @@ public class Storage implements java.io.Serializable {
             }
         }
         decrementChunkOccurences(chunk.getFile_id()+"-"+chunk.getChunk_no());
-        remove_peer_chunks(chunk.getFile_id()+"-"+chunk.getChunk_no(), PeerProtocol.getPeer().getPeer_id());
+        remove_peer_chunks(chunk.getFile_id()+"-"+chunk.getChunk_no(), Peer.getPeer_id());
     }
 
     public void deleteFile(FileInfo fileInfo) {

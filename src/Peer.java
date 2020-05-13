@@ -1,65 +1,158 @@
-import java.io.File;
+import java.io.*;
 import java.net.DatagramPacket;
-import java.util.*;
+import java.rmi.registry.LocateRegistry;
+import java.rmi.registry.Registry;
+import java.rmi.server.UnicastRemoteObject;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.Random;
+import java.util.Set;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 public class Peer implements PeerInterface{
+    //Args
+    private static Integer peer_id;
+    private static Storage storage;
+    private static ArrayList<Node> fingerTable = new ArrayList<>();
+    private static String acc_point;
+    private static String initAddress;
+    private static int initPort;
+    private static ScheduledThreadPoolExecutor threadExecutor; //TODO use this instead of thread
 
-    private Integer peer_id;
-    private Channel[] channels;
-    private Storage storage;
-
-    public Peer(Integer peer_id, Channel[] channels) {
-        this.peer_id = peer_id;
-        this.channels = channels;
-        executeChannels();
-
-        //I'm awake
-        if (!PeerProtocol.getProtocol_version().equals("1.0"))
-            awoke();
+    public Peer(Integer id) {
+        peer_id = id;
     }
 
-    public void executeChannels() {
-        //Initiate channels' threads
-        for (int i = 0; i < 3; i++) {
-            PeerProtocol.getThreadExecutor().execute(channels[i]);
+    public static void main(String args[]) {
+        System.out.println("Starting Peer Protocol");
+        //Parse args
+        if (!parseArgs(args))
+            return;
+
+        //Create executor
+        threadExecutor = (ScheduledThreadPoolExecutor) Executors.newScheduledThreadPool(10);
+
+        //Create initiator peer
+        Peer peer = new Peer(peer_id);
+        System.out.println("Started peer with id " + peer_id);
+
+        //Establish RMI communication between TestApp and Peer
+        establishRMICommunication(peer);
+
+        //Initiate or load storage for initiator peer
+        if (!loadPeerStorage())
+            peer.initiateStorage();
+
+        //Safe and exit
+        Runtime.getRuntime().addShutdownHook(new Thread(Peer::savePeerStorage));
+    }
+
+    public static boolean parseArgs(String[] args) {
+        //Check the number of arguments given
+        if (args.length != 4 && args.length != 6) {
+            System.out.println("Usage: java Peer peer_id access_point addressInit portInit [address port]");
+            return false;
+        }
+
+        //Parse peer id
+        peer_id = Integer.parseInt(args[0]);
+        //Parse access point
+        acc_point = args[1];
+        //Parse initAddress
+        initAddress = args[2];
+        //Parse initPort
+        initPort = Integer.parseInt(args[3]);
+
+        return true;
+    }
+
+    public static void establishRMICommunication(Peer peer) {
+        try {
+            PeerInterface stub = (PeerInterface) UnicastRemoteObject.exportObject(peer, 0);
+
+            // Bind the remote object's stub in the registry
+            Registry registry = LocateRegistry.getRegistry();
+            registry.bind(acc_point, stub);
+
+        } catch (Exception e) {
+            System.err.println("Peer Protocol exception: " + e.toString());
+            e.printStackTrace();
         }
     }
 
-    public void awoke() {
-        MessageFactory messageFactory = new MessageFactory();
-        byte msg[] = messageFactory.awakeMsg(this.peer_id);
-        DatagramPacket sendPacket = new DatagramPacket(msg, msg.length);
-        new Thread(new SendMessagesManager(sendPacket)).start();
+    public static ScheduledThreadPoolExecutor getThreadExecutor() {
+        return threadExecutor;
     }
 
-    public void initiateStorage() {
-        this.storage = new Storage(peer_id);
+    private static void savePeerStorage() {
+        try {
+            Storage storage = Peer.getStorage();
+            String filename;
+            if (storage.isUnix())
+                filename = "Storage/" + peer_id + "/storage.ser";
+            else filename = "Storage\\" + peer_id + "\\storage.ser";
+
+            File file = new File(filename);
+            if (!file.exists()) {
+                file.getParentFile().mkdirs();
+                file.createNewFile();
+            }
+
+            FileOutputStream fileOut = new FileOutputStream(filename);
+            ObjectOutputStream out = new ObjectOutputStream(fileOut);
+            out.writeObject(storage);
+            out.close();
+            fileOut.close();
+        } catch (IOException i) {
+            i.printStackTrace();
+        }
     }
 
-    public Channel getMCChannel(){
-        return this.channels[0];
+    private static boolean loadPeerStorage() {
+        try {
+            String filenameUnix = "Storage/" + peer_id + "/storage.ser";
+            String filenameWin = "Storage\\" + peer_id + "\\storage.ser";
+
+            File file = new File(filenameUnix);
+            String filename = filenameUnix;
+
+            if (!file.exists()) {
+                file = new File(filenameWin);
+                filename = filenameWin;
+                if (!file.exists()) {
+                    return false;
+                }
+            }
+
+            FileInputStream fileIn = new FileInputStream(filename);
+            ObjectInputStream in = new ObjectInputStream(fileIn);
+            storage = (Storage) in.readObject();
+            in.close();
+            fileIn.close();
+        } catch (IOException i) {
+            i.printStackTrace();
+            return false;
+        } catch (ClassNotFoundException c) {
+            c.printStackTrace();
+            return false;
+        }
+        return true;
     }
 
-    public Channel getMDBChannel() {
-        return this.channels[1];
+    public static void initiateStorage() {
+        storage = new Storage(peer_id);
     }
 
-    public Channel getMDRChannel() {
-        return this.channels[2];
+    public static Storage getStorage() {
+        return storage;
     }
 
-    public Storage getStorage() {
-        return this.storage;
+    public static int getPeer_id() {
+        return peer_id;
     }
 
-    public void setStorage(Storage storage) {
-        this.storage = storage;
-    }
-
-    public Integer getPeer_id(){
-        return this.peer_id;
-    }
 
     @Override
     public synchronized String backup(String file_path, Integer replication_degree) {
@@ -89,7 +182,7 @@ public class Peer implements PeerInterface{
             }
             String chunkKey = chunk.getFile_id()+"-"+chunk.getChunk_no();
             PutChunkAttempts putChunkAttempts = new PutChunkAttempts(1, 5, sendPacket, chunkKey, replication_degree, messageString);
-            PeerProtocol.getThreadExecutor().schedule(putChunkAttempts, 1, TimeUnit.SECONDS);
+            Peer.getThreadExecutor().schedule(putChunkAttempts, 1, TimeUnit.SECONDS);
         }
 
         return "Backup successful";
@@ -113,7 +206,7 @@ public class Peer implements PeerInterface{
                     Chunk chunk = chunkIterator.next();
                     //Prepare message to send
                     MessageFactory messageFactory = new MessageFactory();
-                    byte[] msg = messageFactory.getChunkMsg(PeerProtocol.getProtocol_version(), this.peer_id, fileInfo.getFileId(), chunk.getChunk_no());
+                    byte[] msg = messageFactory.getChunkMsg(this.peer_id, fileInfo.getFileId(), chunk.getChunk_no());
                     String messageString = messageFactory.getMessageString();
 
                     //Send message
@@ -205,7 +298,7 @@ public class Peer implements PeerInterface{
                         DatagramPacket sendPacket2 = new DatagramPacket(msg2, msg2.length);
                         Random random = new Random();
                         int random_value = random.nextInt(401);
-                        PeerProtocol.getThreadExecutor().schedule(new SendMessagesManager(sendPacket2), random_value, TimeUnit.MILLISECONDS);
+                        Peer.getThreadExecutor().schedule(new SendMessagesManager(sendPacket2), random_value, TimeUnit.MILLISECONDS);
                         String messageString2 = messageFactory.getMessageString();
                         System.out.printf("Sent message: %s\n", messageString2);
                     }
@@ -277,5 +370,12 @@ public class Peer implements PeerInterface{
         }
 
         return this.storage;
+    }
+
+    @Override
+    public synchronized String debug() {
+        //TODO communication TCP
+
+        return "Debug successfull";
     }
 }
