@@ -25,6 +25,7 @@ public class Peer extends Node implements PeerInterface{
     private static Node predNode;
     private static Node succNode;
 
+
     public Peer(Integer id, String ipAddress, int port) {
         super(ipAddress, port);
         peer_id = id;
