@@ -1,4 +1,5 @@
 import java.io.*;
+import java.math.BigInteger;
 import java.net.DatagramPacket;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
@@ -27,9 +28,13 @@ public class Peer extends Node implements PeerInterface{
 
 
     public Peer(Integer id, String ipAddress, int port) {
+        //create a new chord ring
         super(ipAddress, port);
         peer_id = id;
         succNode = this;
+
+        for (int i = 0; i < fingerTable.length; i++)
+            fingerTable[i] = this;
     }
 
     public Peer(Integer id, String ipAddress, int port, String initAddress, int initPort) {
@@ -177,27 +182,118 @@ public class Peer extends Node implements PeerInterface{
         return peer_id;
     }
 
+    public BigInteger getFinger(int i){
+        // (n + 2^k-1)mod 2^m
+        //n - this node, m - finger length
+        return  (this.getNodeId().add(new BigInteger("2").pow(i))).mod(new BigInteger("2").pow(256));
+    }
+    /**
+     * JOIN - join chord using ring containing node n'
+     */
     public void join(Node initNode) {
-        succNode = initNode.requestFindSucc(this);
+        succNode = initNode.requestFindSucc(this.getNodeId(), this.getNodeId());
+        predNode = succNode;
+
+        for (int i = 0; i < fingerTable.length; i++) {
+            if (fallsBetween(getFinger(i), this.getNodeId(), succNode.getNodeId()))
+                fingerTable[i] = succNode;
+            else
+                fingerTable[i] = this;
+        }
     }
 
-    //TODO verify
-    /*public Node findSucc(Peer peer) {
-        if (peer.getNodeId().equals(this.id)) {
-            //TODO not this?
+    //todo check if this is right
+    public boolean fallsBetween(BigInteger id, BigInteger n, BigInteger succ){
+
+        if(id.compareTo(n) >= 0 && id.compareTo(succ) <= 0)
+            return true;
+        else
+            return false;
+    }
+
+    public Node findSucc(BigInteger nodeToSearchId, BigInteger preservedId) {
+
+        //case its the same id return itself
+        if(preservedId.equals(this.getNodeId()))
             return this;
+
+        if( fallsBetween(preservedId,this.getNodeId(),succNode.getNodeId())){
+            return succNode;
+        }else{
+            Node newNode = closestPrecedNode(preservedId);
+            return newNode.requestFindSucc(this.getNodeId(),preservedId);
         }
-        else {
-            Node newNode = closestPrecedNode(peer.getNodeId());
-            return newNode.findSucc(peer);
-        }
+
+        //this should be unreachable here <---
+
     }
 
-    public Node closestPrecedNode(String id) {
-        //TODO
-        return null;
-    }*/
+    public Node closestPrecedNode(BigInteger preservedId) {
+        for(int i = 256 - 1; i >= 0; i--  )
+            if(fallsBetween(fingerTable[i].getNodeId(),this.getNodeId(),preservedId))
+                return fingerTable[i];
+        return this;
+    }
 
+    /**
+     * STABILIZE -  called periodically, verifies n's immediate
+     * successor, and tells the successor about n
+     */
+    public Node stabilize(){
+        /* PSEUDO CODE //n = this
+            x =successor.predecessor;
+            if(X pertence (n,successor)
+                successor = x;
+             successor.notify(n);
+         */
+        return this;
+    }
+
+    /**
+     * NOFITFY - n' thinks it might be our predecessor
+     */
+    public Node notify(Node node){
+        /* PSEUDO CODE -
+            if(predecessor is nil or n' pertence predecessor,n))
+                predecessor = n';
+         */
+
+        return this;
+    }
+
+    /**
+     * FIX FINGERS
+     *  called periodically, refreshes finger table entries.
+     *  next stores the index of the next finger to fix.
+     */
+    public Node fixFingers(){
+        /* PSEUDO CODE
+
+            next = next +1;
+            if(next > m)
+                next = 1;
+            finger[next] = find.successor(n+2^(next-1));
+         */
+
+        return this;
+    }
+
+    /**
+     * CHECK PREDECESSOR
+     * called periodically, checks whether predecessor has failed
+     */
+
+    public Node checkPred(){
+        /* PSEUDO CODE
+        if(predecessor has failed)
+            predecessor = nil
+         */
+        return this;
+    }
+    /**
+     *
+     * Backup Service methods
+     */
 
     @Override
     public synchronized String backup(String file_path, Integer replication_degree) {
@@ -416,6 +512,11 @@ public class Peer extends Node implements PeerInterface{
 
         return this.storage;
     }
+
+    /**
+     *
+     * Debug method to check chord messages
+     */
 
     @Override
     public synchronized String debug() {
