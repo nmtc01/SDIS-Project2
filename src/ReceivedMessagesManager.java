@@ -7,11 +7,14 @@ public class ReceivedMessagesManager implements Runnable {
     private byte[] body;
 
     public ReceivedMessagesManager(byte[] msg) {
+        // Store SSLConnection
         parseMsg(msg);
     }
 
     @Override
     public void run() {
+        // read from connection
+
         String subProtocol = header[0];
         int senderId = Integer.parseInt(header[1]);
         String fileId = new String();
@@ -44,6 +47,9 @@ public class ReceivedMessagesManager implements Runnable {
                 break;
             case "REMOVED":
                 manageRemoved(senderId, fileId, chunkNo);
+                break;
+            case "FINDSUCC":
+                //manageFindSucc();
                 break;
             default:
                 break;
