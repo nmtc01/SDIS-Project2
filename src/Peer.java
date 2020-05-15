@@ -1,10 +1,8 @@
 import java.io.*;
 import java.math.BigInteger;
-import java.net.DatagramPacket;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
-import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Random;
 import java.util.Set;
@@ -398,8 +396,7 @@ public class Peer extends Node implements PeerInterface{
         while(chunkIterator.hasNext()) {
             Chunk chunk = chunkIterator.next();
             byte msg[] = messageFactory.putChunkMsg(chunk, replication_degree, this.peer_id);
-            DatagramPacket sendPacket = new DatagramPacket(msg, msg.length);
-            new Thread(new SendMessagesManager(sendPacket)).start();
+            new Thread(new SendMessagesManager(msg)).start();
             String messageString = messageFactory.getMessageString();
             System.out.printf("Sent message: %s\n", messageString);
             try {
@@ -409,7 +406,7 @@ public class Peer extends Node implements PeerInterface{
                 e.printStackTrace();
             }
             String chunkKey = chunk.getFile_id()+"-"+chunk.getChunk_no();
-            PutChunkAttempts putChunkAttempts = new PutChunkAttempts(1, 5, sendPacket, chunkKey, replication_degree, messageString);
+            PutChunkAttempts putChunkAttempts = new PutChunkAttempts(1, 5, msg, chunkKey, replication_degree, messageString);
             Peer.getThreadExecutor().schedule(putChunkAttempts, 1, TimeUnit.SECONDS);
         }
 
@@ -438,8 +435,7 @@ public class Peer extends Node implements PeerInterface{
                     String messageString = messageFactory.getMessageString();
 
                     //Send message
-                    DatagramPacket sendPacket = new DatagramPacket(msg, msg.length);
-                    new Thread(new SendMessagesManager(sendPacket)).start();
+                    new Thread(new SendMessagesManager(msg)).start();
                     System.out.printf("Sent message: %s\n", messageString);
                 }
                 while (fileInfo.getChunks().size() != this.storage.getRestoreChunks().size()) {}
@@ -474,8 +470,7 @@ public class Peer extends Node implements PeerInterface{
                     MessageFactory messageFactory = new MessageFactory();
                     byte msg[] = messageFactory.deleteMsg(chunk, this.peer_id);
                     //Send message
-                    DatagramPacket sendPacket = new DatagramPacket(msg, msg.length);
-                    new Thread(new SendMessagesManager(sendPacket)).start();
+                    new Thread(new SendMessagesManager(msg)).start();
                     String messageString = messageFactory.getMessageString();
                     System.out.printf("Sent message: %s\n", messageString);
                 }
@@ -510,8 +505,7 @@ public class Peer extends Node implements PeerInterface{
 
                     MessageFactory messageFactory = new MessageFactory();
                     byte msg[] = messageFactory.reclaimMsg(chunk, this.peer_id);
-                    DatagramPacket sendPacket = new DatagramPacket(msg, msg.length);
-                    new Thread(new SendMessagesManager(sendPacket)).start();
+                    new Thread(new SendMessagesManager(msg)).start();
                     String messageString = messageFactory.getMessageString();
                     System.out.printf("Sent message: %s\n", messageString);
 
@@ -523,10 +517,9 @@ public class Peer extends Node implements PeerInterface{
 
                     if (this.storage.getChunkCurrentDegree(chunkKey) < chunk.getDesired_replication_degree()) {
                         byte msg2[] = messageFactory.putChunkMsg(chunk, chunk.getDesired_replication_degree(), this.peer_id);
-                        DatagramPacket sendPacket2 = new DatagramPacket(msg2, msg2.length);
                         Random random = new Random();
                         int random_value = random.nextInt(401);
-                        Peer.getThreadExecutor().schedule(new SendMessagesManager(sendPacket2), random_value, TimeUnit.MILLISECONDS);
+                        Peer.getThreadExecutor().schedule(new SendMessagesManager(msg2), random_value, TimeUnit.MILLISECONDS);
                         String messageString2 = messageFactory.getMessageString();
                         System.out.printf("Sent message: %s\n", messageString2);
                     }

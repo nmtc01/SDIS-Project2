@@ -1,16 +1,15 @@
-import java.net.DatagramPacket;
 import java.util.concurrent.TimeUnit;
 
 public class PutChunkAttempts implements Runnable {
     private int time;
     private int attempts;
     private int counter;
-    private DatagramPacket message;
+    private byte[] message;
     private String chunkKey;
     private int desiredRepDeg;
     private String messageHeader;
 
-    public PutChunkAttempts(int time, int attempts, DatagramPacket message, String chunkKey, int repDeg, String messageHeader) {
+    public PutChunkAttempts(int time, int attempts, byte[] message, String chunkKey, int repDeg, String messageHeader) {
         this.time = time;
         this.attempts = attempts;
         this.message = message;

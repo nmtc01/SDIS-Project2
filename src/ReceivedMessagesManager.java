@@ -15,7 +15,6 @@ public class ReceivedMessagesManager implements Runnable {
 
     public ReceivedMessagesManager(SSLSocket sslSocket) {
         this.sslSocket = sslSocket;
-        //parseMsg(msg);
     }
 
     @Override
@@ -23,6 +22,8 @@ public class ReceivedMessagesManager implements Runnable {
         // read from connection
         try {
             BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(sslSocket.getInputStream()));
+
+            //TODO read byte[] instead of String
             String request = bufferedReader.readLine();
 
             sslSocket.close();
@@ -30,8 +31,6 @@ public class ReceivedMessagesManager implements Runnable {
         } catch (IOException e) {
             e.printStackTrace();
         }
-
-
 
         String subProtocol = header[0];
         int senderId = Integer.parseInt(header[1]);

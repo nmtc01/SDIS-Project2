@@ -2,16 +2,10 @@ import javax.net.ssl.SSLSocket;
 import javax.net.ssl.SSLSocketFactory;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.net.DatagramPacket;
 import java.net.InetAddress;
 
 public class SendMessagesManager implements Runnable {
-    private DatagramPacket packet;
     private byte[] message;
-
-    SendMessagesManager(DatagramPacket packet) {
-        this.packet = packet;
-    }
 
     public SendMessagesManager(byte[] message) {
         this.message = message;
@@ -19,28 +13,27 @@ public class SendMessagesManager implements Runnable {
 
     @Override
     public void run() {
-        byte[] message = parsePacket(this.packet);
-        String[] p_str = parsePacketStr(this.packet);
+        String[] p_str = parseMsgToString(this.message);
         String subProtocol = p_str[1];
 
         switch (subProtocol) {
             case "PUTCHUNK":
-                managePutChunk(message);
+                managePutChunk(this.message);
                 break;
             case "STORED":
-                manageStored(message);
+                manageStored(this.message);
                 break;
             case "DELETE":
-                manageDelete(message);
+                manageDelete(this.message);
                 break;
             case "GETCHUNK":
-                manageGetChunk(message);
+                manageGetChunk(this.message);
                 break;
             case "CHUNK":
-                manageChunk(message);
+                manageChunk(this.message);
                 break;
             case "REMOVED":
-                manageRemoved(message);
+                manageRemoved(this.message);
                 break;
             case "FINDSUCC":
                 manageFindSucc(this.message);
@@ -53,12 +46,8 @@ public class SendMessagesManager implements Runnable {
         }
     }
 
-    private byte[] parsePacket(DatagramPacket packet) {
-        return packet.getData();
-    }
-
-    private String[] parsePacketStr(DatagramPacket packet) {
-        String p = new String(packet.getData());
+    private String[] parseMsgToString(byte[] request) {
+        String p = new String(request);
         String[] pArray = p.trim().split(" ");
         return pArray;
     }

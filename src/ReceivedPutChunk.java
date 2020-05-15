@@ -1,5 +1,3 @@
-import java.net.DatagramPacket;
-
 public class ReceivedPutChunk implements Runnable {
     private String fileId;
     private int chunkNo;
@@ -18,8 +16,7 @@ public class ReceivedPutChunk implements Runnable {
         if(manageStorage()) {
             MessageFactory messageFactory = new MessageFactory();
             byte msg[] = messageFactory.storedMsg(Peer.getPeer_id(), this.fileId, this.chunkNo);
-            DatagramPacket sendPacket = new DatagramPacket(msg, msg.length);
-            new Thread(new SendMessagesManager(sendPacket)).start();
+            new Thread(new SendMessagesManager(msg)).start();
             System.out.printf("Sent message: %s\n", messageFactory.getMessageString());
         }
     }
