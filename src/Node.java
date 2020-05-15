@@ -88,6 +88,13 @@ public class Node {
 
     public Node requestNotify(BigInteger requestId, Node node){ return null; }
 
+    public boolean testResponse(BigInteger id){
+
+        //test duriing a certeain time to communicate with the predecessor, if it succeeds return false if it fails return true;
+        //function to test connection hasfailed on peer
+        return true;
+    }
+
     /**
      * Funtion to send over tcp succ node id
      * @param requestNode
