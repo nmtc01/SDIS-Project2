@@ -41,8 +41,10 @@ public class Node {
             BufferedReader in = new BufferedReader(new InputStreamReader(sslSocket.getInputStream()));
 
             //TODO check this
-            String request = "FINDSUCC " + node.getNodeId() + " " + id + " \n";
-            out.println(request);
+            MessageFactory messageFactory = new MessageFactory();
+            byte[] message = messageFactory.findSuccMsg();
+
+            out.println(message);
             String reply = in.readLine();
 
             //TODO see what to do with reply

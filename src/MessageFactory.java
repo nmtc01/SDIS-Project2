@@ -85,4 +85,17 @@ public class MessageFactory {
 
         return reclaimMsg;
     }
+
+    public byte[] findSuccMsg(/*NodeId*/) {
+        this.messageString = "FINDSUCC " /*+ node.getNodeId()*/ + " \n";
+        String request = this.messageString;
+        return request.getBytes();
+    }
+
+    public byte[] replySuccMsg() {
+        this.messageString = "SUCC " + /* NODE ID*/ " \n";
+        String request = this.messageString;
+        return request.getBytes();
+    }
+
 }

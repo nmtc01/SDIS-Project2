@@ -13,6 +13,7 @@ import java.util.concurrent.TimeUnit;
 
 public class Peer extends Node implements PeerInterface{
     //Args
+    private static Peer peer;
     private static Integer peer_id;
     private static Storage storage;
     private static String acc_point;
@@ -47,12 +48,16 @@ public class Peer extends Node implements PeerInterface{
 
         //Create executor
         threadExecutor = (ScheduledThreadPoolExecutor) Executors.newScheduledThreadPool(10);
+        getThreadExecutor().execute(new SSLConnection());
 
         //Create initiator peer
-        Peer peer;
-        if (args.length == 6)
+
+        if (args.length == 6) {
             peer = new Peer(peer_id, ipAddress, port, initIpAddress, initPort);
-        else peer = new Peer(peer_id, ipAddress, port);
+        }
+        else {
+            peer = new Peer(peer_id, ipAddress, port);
+        }
 
         System.out.println("Started peer with id " + peer_id);
 
@@ -60,8 +65,10 @@ public class Peer extends Node implements PeerInterface{
         establishRMICommunication(peer);
 
         //Initiate or load storage for initiator peer
-        if (!loadPeerStorage())
-            peer.initiateStorage();
+        if (!loadPeerStorage()) {
+            initiateStorage();
+        }
+
 
         //Safe and exit
         Runtime.getRuntime().addShutdownHook(new Thread(Peer::savePeerStorage));
@@ -166,6 +173,10 @@ public class Peer extends Node implements PeerInterface{
 
     public static void initiateStorage() {
         storage = new Storage(peer_id);
+    }
+
+    public static Peer getPeer() {
+        return peer;
     }
 
     public static Storage getStorage() {

@@ -1,3 +1,8 @@
+import javax.net.ssl.SSLSocket;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.util.Arrays;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
@@ -5,15 +10,25 @@ import java.util.concurrent.TimeUnit;
 public class ReceivedMessagesManager implements Runnable {
     private String[] header;
     private byte[] body;
+    private SSLSocket sslSocket;
 
-    public ReceivedMessagesManager(byte[] msg) {
-        // Store SSLConnection
-        parseMsg(msg);
+    public ReceivedMessagesManager(SSLSocket sslSocket) {
+        this.sslSocket = sslSocket;
+        //parseMsg(msg);
     }
 
     @Override
     public void run() {
         // read from connection
+        try {
+            BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(sslSocket.getInputStream()));
+            String request = bufferedReader.readLine();
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+
 
         String subProtocol = header[0];
         int senderId = Integer.parseInt(header[1]);
@@ -49,7 +64,7 @@ public class ReceivedMessagesManager implements Runnable {
                 manageRemoved(senderId, fileId, chunkNo);
                 break;
             case "FINDSUCC":
-                //manageFindSucc();
+                manageFindSucc();
                 break;
             default:
                 break;
@@ -71,7 +86,7 @@ public class ReceivedMessagesManager implements Runnable {
         //If the peer that sent is the same peer receiving
         if (senderId == Peer.getPeer_id())
             return;
-        System.out.printf("Received message: %s PUTCHUNK %d %s %d %d\n", senderId, fileId, chunkNo, repDeg);
+        System.out.printf("Received message: PUTCHUNK %d %s %d %d\n", senderId, fileId, chunkNo, repDeg);
         Random random = new Random();
         int random_value = random.nextInt(401);
         ReceivedPutChunk receivedPutChunk = new ReceivedPutChunk(fileId, chunkNo, repDeg, body);
@@ -85,13 +100,13 @@ public class ReceivedMessagesManager implements Runnable {
         String chunkKey = fileId+"-"+chunkNo;
         peerStorage.incrementChunkOccurences(chunkKey);
         peerStorage.add_peer_chunks(chunkKey, senderId);
-        System.out.printf("Received message: %s STORED %d %s %d\n", senderId, fileId, chunkNo);
+        System.out.printf("Received message: STORED %d %s %d\n", senderId, fileId, chunkNo);
     }
 
     private void manageRemoved(int senderId, String fileId, int chunkNo) {
         if (senderId == Peer.getPeer_id())
             return;
-        System.out.printf("Received message: %s REMOVED %d %s %d\n", senderId, fileId, chunkNo);
+        System.out.printf("Received message: REMOVED %d %s %d\n", senderId, fileId, chunkNo);
         String chunkKey = fileId +"-"+chunkNo;
         Storage peerStorage = Peer.getStorage();
         peerStorage.decrementChunkOccurences(chunkKey);
@@ -101,7 +116,7 @@ public class ReceivedMessagesManager implements Runnable {
     private void manageGetChunk(int senderId, String fileId, int chunkNo) {
         if (senderId == Peer.getPeer_id())
             return;
-        System.out.printf("Received message: %s GETCHUNK %d %s %d\n", senderId, fileId, chunkNo);
+        System.out.printf("Received message: GETCHUNK %d %s %d\n", senderId, fileId, chunkNo);
         Random random = new Random();
         int random_value = random.nextInt(401);
         ReceivedGetChunk receivedGetChunk = new ReceivedGetChunk(fileId, chunkNo);
@@ -111,7 +126,7 @@ public class ReceivedMessagesManager implements Runnable {
     private void manageChunk(int senderId, String fileId, int chunkNo, byte[] body) {
         if (senderId == Peer.getPeer_id())
             return;
-        System.out.printf("Received message: %s CHUNK %d %s %d\n", senderId, fileId, chunkNo);
+        System.out.printf("Received message: CHUNK %d %s %d\n", senderId, fileId, chunkNo);
         String chunkKey = fileId+"-"+chunkNo;
         Peer.getStorage().getRestoreChunks().putIfAbsent(chunkKey, body);
     }
@@ -119,10 +134,18 @@ public class ReceivedMessagesManager implements Runnable {
     private void manageDelete(int senderId, String fileId) {
         if (senderId == Peer.getPeer_id())
             return;
-        System.out.printf("Received message: %s DELETE %d %s\n", senderId, fileId);
+        System.out.printf("Received message: DELETE %d %s\n", senderId, fileId);
         Random random = new Random();
         int random_value = random.nextInt(401);
         ReceivedDelete receivedDelete = new ReceivedDelete(fileId);
         Peer.getThreadExecutor().schedule(receivedDelete, random_value, TimeUnit.MILLISECONDS);
+    }
+
+    private void manageFindSucc() {
+        //Peer.getPeer().findSucc();
+        System.out.printf("Received message: FINDSUCC %d %s\n");
+
+        ReceivedFindSucc receivedFindSucc = new ReceivedFindSucc(sslSocket);
+        Peer.getThreadExecutor().execute(receivedFindSucc);
     }
 }

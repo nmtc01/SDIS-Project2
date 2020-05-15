@@ -1,23 +1,36 @@
 import javax.net.ServerSocketFactory;
+import javax.net.ssl.SSLServerSocket;
 import javax.net.ssl.SSLServerSocketFactory;
+import javax.net.ssl.SSLSocket;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.util.concurrent.TimeUnit;
 
 
 public class SSLConnection implements Runnable {
-    Peer peer;
+    //Peer peer;
 
-    SSLConnection(Peer peer) {
-        this.peer = peer;
+    SSLConnection(/*Peer peer*/) {
+        //this.peer = peer;
     }
 
     @Override
     public void run() {
-        ServerSocketFactory sslServerSocketFactory;
-        sslServerSocketFactory = SSLServerSocketFactory.getDefault();
+        SSLServerSocketFactory sslServerSocketFactory = (SSLServerSocketFactory) SSLServerSocketFactory.getDefault();
+        SSLServerSocket serverSocket;
+        try {
+            serverSocket = (SSLServerSocket) sslServerSocketFactory.createServerSocket(80); // TODO change port
 
-        while (true) {
+            while (true) {
+                SSLSocket clientSocket = (SSLSocket) serverSocket.accept();
 
-            Peer.getThreadExecutor().schedule(new ReceivedMessagesManager("".getBytes()), 0, TimeUnit.SECONDS);
+                Peer.getThreadExecutor().execute(new ReceivedMessagesManager(clientSocket));
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
         }
+
     }
 }
