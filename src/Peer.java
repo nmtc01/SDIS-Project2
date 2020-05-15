@@ -57,6 +57,16 @@ public class Peer extends Node implements PeerInterface{
         getThreadExecutor().execute(new SSLConnection());
 
         //todo create stabilize thread every X time call stabilize function
+        /*
+         this thread should call receive as args (Peer node)
+         and call :
+            node.stabilize();
+            node.fixFingers();
+            node.checkPred();
+
+        repeat over time
+
+         */
 
         //Create initiator peer
 
@@ -285,29 +295,43 @@ public class Peer extends Node implements PeerInterface{
 
         if(x != null
                 && !this.getNodeId().equals(x.getNodeId())
-                && (this.getNodeId().equals(this.succNode.getNodeId())
-                || fallsBetween(x.getNodeId(), this.getNodeId(), succNode.getNodeId()))
+                &&  fallsBetween(x.getNodeId(), this.getNodeId(), succNode.getNodeId())
+                    || this.getNodeId().equals(this.succNode.getNodeId() )
         ){
-            this.succNode = x;
             fingerTable[0] = x;
+            succNode = x;
         }
 
-        //succNode.notify(this);
+        succNode.requestNotify(this.getNodeId(), this);
     }
 
     /**
      * NOFITFY
      * n' thinks it might be our predecessor
      */
-    public Node notify(Node node){
+    public void notify(Node node){
          /* PSEUDO CODE -
-            if(predecessor is nil or n' pertence predecessor,n))
+            if(predecessor is nil or n' falls into predecessor,n))
                 predecessor = n';
          */
-       // if(predNode == null || )
+         if ( this.predNode == null
+                 || fallsBetween(node.getNodeId(), predNode.getNodeId(), this.getNodeId())
+                 || !predNode.getNodeId().equals(this.getNodeId())
+         ){
+             if (node.getNodeId().equals(this.getNodeId()))
+                 return;
 
+             if (predNode == null || !node.getNodeId().equals(predNode.getNodeId())) {
+                 predNode = node;
 
-        return this;
+                 //todo function to update storage, give storage
+
+                 if (succNode.getNodeId().equals(this.getNodeId())) {
+                     succNode = node;
+                        fingerTable[0] = node;
+                 }
+             }
+         }
     }
 
     /**
@@ -315,16 +339,12 @@ public class Peer extends Node implements PeerInterface{
      *  called periodically, refreshes finger table entries.
      *  next stores the index of the next finger to fix.
      */
-    public Node fixFingers(){
-        /* PSEUDO CODE
+    public void fixFingers(){
 
-            next = next +1;
-            if(next > m)
-                next = 1;
-            finger[next] = find.successor(n+2^(next-1));
-         */
+        for (int i = 1; i < fingerTable.length; i++) {
+            fingerTable[i] = requestFindSucc(this.getNodeId(), getFinger(i));
+        }
 
-        return this;
     }
 
     /**
@@ -332,12 +352,19 @@ public class Peer extends Node implements PeerInterface{
      * called periodically, checks whether predecessor has failed
      */
 
-    public Node checkPred(){
+    public void checkPred(){
         /* PSEUDO CODE
         if(predecessor has failed)
             predecessor = nil
          */
-        return this;
+        if (predNode!= null && predNode.testResponse(this.getNodeId()))
+            predNode = null;
+
+    }
+
+    //used to check if precedecessor fails giving response
+    public boolean hasFailed(){
+        return false;
     }
 
     public BigInteger getFinger(int i){
