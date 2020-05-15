@@ -54,6 +54,8 @@ public class Peer extends Node implements PeerInterface{
         //Create executor
         threadExecutor = (ScheduledThreadPoolExecutor) Executors.newScheduledThreadPool(10);
 
+        //todo create stabilize thread every X time call stabilize function
+
         //Create initiator peer
         Peer peer;
         if (args.length == 6)
@@ -114,6 +116,10 @@ public class Peer extends Node implements PeerInterface{
     public static ScheduledThreadPoolExecutor getThreadExecutor() {
         return threadExecutor;
     }
+
+    /////////////////////////////////
+    //////// STORAGE SECTION ////////
+    /////////////////////////////////
 
     private static void savePeerStorage() {
         try {
@@ -178,20 +184,23 @@ public class Peer extends Node implements PeerInterface{
         return storage;
     }
 
+
     public static int getPeer_id() {
         return peer_id;
     }
 
-    public BigInteger getFinger(int i){
-        // (n + 2^k-1)mod 2^m
-        //n - this node, m - finger length
-        return  (this.getNodeId().add(new BigInteger("2").pow(i))).mod(new BigInteger("2").pow(256));
-    }
+    /////////////////////////////////////////
+    ////////  CHORD JOINING SECTION  ////////
+    /////////////////////////////////////////
+
     /**
      * JOIN - join chord using ring containing node n'
      */
     public void join(Node initNode) {
         succNode = initNode.requestFindSucc(this.getNodeId(), this.getNodeId());
+
+        //open thread to wait for the response
+
         predNode = succNode;
 
         for (int i = 0; i < fingerTable.length; i++) {
@@ -205,13 +214,16 @@ public class Peer extends Node implements PeerInterface{
     //todo check if this is right
     public boolean fallsBetween(BigInteger id, BigInteger n, BigInteger succ){
 
-        if(id.compareTo(n) >= 0 && id.compareTo(succ) <= 0)
+        //if n major than succ cannot be compared
+        if(n.compareTo(succ) < 0)
+            return false;
+        else if(id.compareTo(n) >= 0 && id.compareTo(succ) <= 0)
             return true;
         else
             return false;
     }
 
-    public Node findSucc(BigInteger nodeToSearchId, BigInteger preservedId) {
+    public Node findSucc(BigInteger nodeToSearchId, BigInteger preservedId){
 
         //case its the same id return itself
         if(preservedId.equals(this.getNodeId()))
@@ -221,11 +233,19 @@ public class Peer extends Node implements PeerInterface{
             return succNode;
         }else{
             Node newNode = closestPrecedNode(preservedId);
+
+            if(newNode.getNodeId().equals(this.getNodeId()))
+                return this;
+
             return newNode.requestFindSucc(this.getNodeId(),preservedId);
         }
 
         //this should be unreachable here <---
 
+    }
+
+    public Node findPred(){
+        return predNode;
     }
 
     public Node closestPrecedNode(BigInteger preservedId) {
@@ -235,28 +255,45 @@ public class Peer extends Node implements PeerInterface{
         return this;
     }
 
+    /////////////////////////////////////////////
+    ////////  CHORD MAINTENANCE SECTION  ////////
+    /////////////////////////////////////////////
+
     /**
-     * STABILIZE -  called periodically, verifies n's immediate
+     * STABILIZE
+     * called periodically, verifies n's immediate
      * successor, and tells the successor about n
      */
-    public Node stabilize(){
-        /* PSEUDO CODE //n = this
-            x =successor.predecessor;
-            if(X pertence (n,successor)
-                successor = x;
-             successor.notify(n);
-         */
-        return this;
+
+    public void stabilize(){
+        //get predecessor
+        Node x = succNode.requestFindPred();
+
+        //check if X falls between (n,successor)
+
+        if(x != null
+                && !this.getNodeId().equals(x.getNodeId())
+                && (this.getNodeId().equals(this.succNode.getNodeId())
+                || fallsBetween(x.getNodeId(), this.getNodeId(), succNode.getNodeId()))
+        ){
+            this.succNode = x;
+            fingerTable[0] = x;
+        }
+
+        //succNode.notify(this);
     }
 
     /**
-     * NOFITFY - n' thinks it might be our predecessor
+     * NOFITFY
+     * n' thinks it might be our predecessor
      */
     public Node notify(Node node){
-        /* PSEUDO CODE -
+         /* PSEUDO CODE -
             if(predecessor is nil or n' pertence predecessor,n))
                 predecessor = n';
          */
+       // if(predNode == null || )
+
 
         return this;
     }
@@ -290,6 +327,17 @@ public class Peer extends Node implements PeerInterface{
          */
         return this;
     }
+
+    public BigInteger getFinger(int i){
+        // (n + 2^k-1)mod 2^m
+        //n - this node, m - finger length
+        return  (this.getNodeId().add(new BigInteger("2").pow(i))).mod(new BigInteger("2").pow(256));
+    }
+
+    /////////////////////////////////////////
+    //////// BACKUP PROTOCOL SECTION ////////
+    /////////////////////////////////////////
+
     /**
      *
      * Backup Service methods
