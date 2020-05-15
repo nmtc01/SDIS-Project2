@@ -1,4 +1,5 @@
 import java.io.*;
+import java.math.BigInteger;
 import java.net.DatagramPacket;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
@@ -26,10 +27,15 @@ public class Peer extends Node implements PeerInterface{
     private static Node predNode;
     private static Node succNode;
 
+
     public Peer(Integer id, String ipAddress, int port) {
+        //create a new chord ring
         super(ipAddress, port);
         peer_id = id;
         succNode = this;
+
+        for (int i = 0; i < fingerTable.length; i++)
+            fingerTable[i] = this;
     }
 
     public Peer(Integer id, String ipAddress, int port, String initAddress, int initPort) {
@@ -49,6 +55,8 @@ public class Peer extends Node implements PeerInterface{
         //Create executor
         threadExecutor = (ScheduledThreadPoolExecutor) Executors.newScheduledThreadPool(10);
         getThreadExecutor().execute(new SSLConnection());
+
+        //todo create stabilize thread every X time call stabilize function
 
         //Create initiator peer
 
@@ -115,6 +123,10 @@ public class Peer extends Node implements PeerInterface{
     public static ScheduledThreadPoolExecutor getThreadExecutor() {
         return threadExecutor;
     }
+
+    /////////////////////////////////
+    //////// STORAGE SECTION ////////
+    /////////////////////////////////
 
     private static void savePeerStorage() {
         try {
@@ -183,31 +195,164 @@ public class Peer extends Node implements PeerInterface{
         return storage;
     }
 
+
     public static int getPeer_id() {
         return peer_id;
     }
 
+    /////////////////////////////////////////
+    ////////  CHORD JOINING SECTION  ////////
+    /////////////////////////////////////////
+
+    /**
+     * JOIN - join chord using ring containing node n'
+     */
     public void join(Node initNode) {
-        succNode = initNode.requestFindSucc(this);
+        succNode = initNode.requestFindSucc(this.getNodeId(), this.getNodeId());
+
+        //open thread to wait for the response
+
+        predNode = succNode;
+
+        for (int i = 0; i < fingerTable.length; i++) {
+            if (fallsBetween(getFinger(i), this.getNodeId(), succNode.getNodeId()))
+                fingerTable[i] = succNode;
+            else
+                fingerTable[i] = this;
+        }
     }
 
-    //TODO verify
-    /*public Node findSucc(Peer peer) {
-        if (peer.getNodeId().equals(this.id)) {
-            //TODO not this?
+    //todo check if this is right
+    public boolean fallsBetween(BigInteger id, BigInteger n, BigInteger succ){
+
+        //if n major than succ cannot be compared
+        if(n.compareTo(succ) < 0)
+            return false;
+        else if(id.compareTo(n) >= 0 && id.compareTo(succ) <= 0)
+            return true;
+        else
+            return false;
+    }
+
+    public Node findSucc(BigInteger nodeToSearchId, BigInteger preservedId){
+
+        //case its the same id return itself
+        if(preservedId.equals(this.getNodeId()))
             return this;
+
+        if( fallsBetween(preservedId,this.getNodeId(),succNode.getNodeId())){
+            return succNode;
+        }else{
+            Node newNode = closestPrecedNode(preservedId);
+
+            if(newNode.getNodeId().equals(this.getNodeId()))
+                return this;
+
+            return newNode.requestFindSucc(this.getNodeId(),preservedId);
         }
-        else {
-            Node newNode = closestPrecedNode(peer.getNodeId());
-            return newNode.findSucc(peer);
-        }
+
+        //this should be unreachable here <---
+
     }
 
-    public Node closestPrecedNode(String id) {
-        //TODO
-        return null;
-    }*/
+    public Node findPred(){
+        return predNode;
+    }
 
+    public Node closestPrecedNode(BigInteger preservedId) {
+        for(int i = 256 - 1; i >= 0; i--  )
+            if(fallsBetween(fingerTable[i].getNodeId(),this.getNodeId(),preservedId))
+                return fingerTable[i];
+        return this;
+    }
+
+    /////////////////////////////////////////////
+    ////////  CHORD MAINTENANCE SECTION  ////////
+    /////////////////////////////////////////////
+
+    /**
+     * STABILIZE
+     * called periodically, verifies n's immediate
+     * successor, and tells the successor about n
+     */
+
+    public void stabilize(){
+        //get predecessor
+        Node x = succNode.requestFindPred();
+
+        //check if X falls between (n,successor)
+
+        if(x != null
+                && !this.getNodeId().equals(x.getNodeId())
+                && (this.getNodeId().equals(this.succNode.getNodeId())
+                || fallsBetween(x.getNodeId(), this.getNodeId(), succNode.getNodeId()))
+        ){
+            this.succNode = x;
+            fingerTable[0] = x;
+        }
+
+        //succNode.notify(this);
+    }
+
+    /**
+     * NOFITFY
+     * n' thinks it might be our predecessor
+     */
+    public Node notify(Node node){
+         /* PSEUDO CODE -
+            if(predecessor is nil or n' pertence predecessor,n))
+                predecessor = n';
+         */
+       // if(predNode == null || )
+
+
+        return this;
+    }
+
+    /**
+     * FIX FINGERS
+     *  called periodically, refreshes finger table entries.
+     *  next stores the index of the next finger to fix.
+     */
+    public Node fixFingers(){
+        /* PSEUDO CODE
+
+            next = next +1;
+            if(next > m)
+                next = 1;
+            finger[next] = find.successor(n+2^(next-1));
+         */
+
+        return this;
+    }
+
+    /**
+     * CHECK PREDECESSOR
+     * called periodically, checks whether predecessor has failed
+     */
+
+    public Node checkPred(){
+        /* PSEUDO CODE
+        if(predecessor has failed)
+            predecessor = nil
+         */
+        return this;
+    }
+
+    public BigInteger getFinger(int i){
+        // (n + 2^k-1)mod 2^m
+        //n - this node, m - finger length
+        return  (this.getNodeId().add(new BigInteger("2").pow(i))).mod(new BigInteger("2").pow(256));
+    }
+
+    /////////////////////////////////////////
+    //////// BACKUP PROTOCOL SECTION ////////
+    /////////////////////////////////////////
+
+    /**
+     *
+     * Backup Service methods
+     */
 
     @Override
     public synchronized String backup(String file_path, Integer replication_degree) {
@@ -426,6 +571,11 @@ public class Peer extends Node implements PeerInterface{
 
         return this.storage;
     }
+
+    /**
+     *
+     * Debug method to check chord messages
+     */
 
     @Override
     public synchronized String debug() {
