@@ -3,6 +3,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
+import java.math.BigInteger;
 import java.util.Arrays;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
@@ -66,8 +67,10 @@ public class ReceivedMessagesManager implements Runnable {
                 manageRemoved(senderId, fileId, chunkNo);
                 break;
             case "FINDSUCC":
-                manageFindSucc();
+                //manageFindSucc(address, port, requestId, idToFind);
                 break;
+            case "SUCC":
+                manageSucc();
             default:
                 break;
         }
@@ -143,10 +146,13 @@ public class ReceivedMessagesManager implements Runnable {
         Peer.getThreadExecutor().schedule(receivedDelete, random_value, TimeUnit.MILLISECONDS);
     }
 
-    private void manageFindSucc() {
+    private void manageFindSucc(String address, int port, BigInteger requestId, BigInteger idToFind) {
         System.out.printf("Received message: FINDSUCC %d %s\n");
 
-        ReceivedFindSucc receivedFindSucc = new ReceivedFindSucc();
+        ReceivedFindSucc receivedFindSucc = new ReceivedFindSucc(address, port, requestId, idToFind);
         Peer.getThreadExecutor().execute(receivedFindSucc);
+    }
+
+    private void manageSucc() {
     }
 }

@@ -49,6 +49,7 @@ public class Node {
             MessageFactory messageFactory = new MessageFactory();
             byte[] message = messageFactory.findSuccMsg();
 
+            out.flush();
             out.println(message);
 
             //String reply = in.readLine();
