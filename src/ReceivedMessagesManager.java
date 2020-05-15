@@ -24,6 +24,8 @@ public class ReceivedMessagesManager implements Runnable {
             BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(sslSocket.getInputStream()));
             String request = bufferedReader.readLine();
 
+            sslSocket.close();
+
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -142,10 +144,9 @@ public class ReceivedMessagesManager implements Runnable {
     }
 
     private void manageFindSucc() {
-        //Peer.getPeer().findSucc();
         System.out.printf("Received message: FINDSUCC %d %s\n");
 
-        ReceivedFindSucc receivedFindSucc = new ReceivedFindSucc(sslSocket);
+        ReceivedFindSucc receivedFindSucc = new ReceivedFindSucc();
         Peer.getThreadExecutor().execute(receivedFindSucc);
     }
 }

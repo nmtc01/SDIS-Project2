@@ -43,7 +43,7 @@ public class Node {
             }*/
 
             PrintWriter out = new PrintWriter(sslSocket.getOutputStream(), true);
-            BufferedReader in = new BufferedReader(new InputStreamReader(sslSocket.getInputStream()));
+            // BufferedReader in = new BufferedReader(new InputStreamReader(sslSocket.getInputStream()));
 
             //TODO check this
             MessageFactory messageFactory = new MessageFactory();
@@ -51,7 +51,7 @@ public class Node {
 
             out.println(message);
 
-            String reply = in.readLine();
+            //String reply = in.readLine();
 
             //TODO see what to do with reply
         } catch (IOException e) {

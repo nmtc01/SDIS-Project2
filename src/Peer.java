@@ -211,6 +211,7 @@ public class Peer extends Node implements PeerInterface{
         succNode = initNode.requestFindSucc(this.getNodeId(), this.getNodeId());
 
         //open thread to wait for the response
+        //while (succNode == null) { }
 
         predNode = succNode;
 
