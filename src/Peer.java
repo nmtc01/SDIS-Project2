@@ -13,7 +13,6 @@ import java.util.concurrent.TimeUnit;
 public class Peer extends Node implements PeerInterface{
     //Args
     private static Peer peer;
-    private static Integer peer_id;
     private static Storage storage;
     private static String acc_point;
     private static String ipAddress;
@@ -25,20 +24,17 @@ public class Peer extends Node implements PeerInterface{
     private static Node predNode;
     private static Node succNode;
 
-
-    public Peer(Integer id, String ipAddress, int port) {
+    public Peer(String ipAddress, int port) {
         //create a new chord ring
         super(ipAddress, port);
-        peer_id = id;
         succNode = this;
 
         for (int i = 0; i < fingerTable.length; i++)
             fingerTable[i] = this;
     }
 
-    public Peer(Integer id, String ipAddress, int port, String initAddress, int initPort) {
+    public Peer(String ipAddress, int port, String initAddress, int initPort) {
         super(ipAddress, port);
-        peer_id = id;
         succNode = this;
         this.join(new Node(initAddress, initPort));
     }
@@ -52,7 +48,7 @@ public class Peer extends Node implements PeerInterface{
 
         //Create executor
         threadExecutor = (ScheduledThreadPoolExecutor) Executors.newScheduledThreadPool(10);
-        getThreadExecutor().execute(new SSLConnection());
+        threadExecutor.execute(new SSLConnection(port, ipAddress));
 
         //todo create stabilize thread every X time call stabilize function
         /*
@@ -67,15 +63,14 @@ public class Peer extends Node implements PeerInterface{
          */
 
         //Create initiator peer
-
         if (args.length == 6) {
-            peer = new Peer(peer_id, ipAddress, port, initIpAddress, initPort);
+            peer = new Peer(ipAddress, port, initIpAddress, initPort);
         }
         else {
-            peer = new Peer(peer_id, ipAddress, port);
+            peer = new Peer(ipAddress, port);
         }
 
-        System.out.println("Started peer with id " + peer_id);
+        System.out.println("Started peer");
 
         //Establish RMI communication between TestApp and Peer
         establishRMICommunication(peer);
@@ -85,7 +80,6 @@ public class Peer extends Node implements PeerInterface{
             initiateStorage();
         }
 
-
         //Safe and exit
         Runtime.getRuntime().addShutdownHook(new Thread(Peer::savePeerStorage));
     }
@@ -93,22 +87,20 @@ public class Peer extends Node implements PeerInterface{
     public static boolean parseArgs(String[] args) {
         //Check the number of arguments given
         if (args.length != 4 && args.length != 6) {
-            System.out.println("Usage: java Peer peer_id access_point addressInit portInit [address port]");
+            System.out.println("Usage: java Peer access_point addressInit portInit [address port]");
             return false;
         }
 
-        //Parse peer id
-        peer_id = Integer.parseInt(args[0]);
         //Parse access point
-        acc_point = args[1];
+        acc_point = args[0];
         //Parse address
-        ipAddress = args[2];
+        ipAddress = args[1];
         //Parse port
-        port = Integer.parseInt(args[3]);
+        port = Integer.parseInt(args[2]);
         //Parse init
-        if (args.length == 6) {
-            initIpAddress = args[4];
-            initPort = Integer.parseInt(args[5]);
+        if (args.length == 5) {
+            initIpAddress = args[3];
+            initPort = Integer.parseInt(args[4]);
         }
 
         return true;
@@ -139,10 +131,7 @@ public class Peer extends Node implements PeerInterface{
     private static void savePeerStorage() {
         try {
             Storage storage = Peer.getStorage();
-            String filename;
-            if (storage.isUnix())
-                filename = "Storage/" + peer_id + "/storage.ser";
-            else filename = "Storage\\" + peer_id + "\\storage.ser";
+            String filename = "Storage/storage.ser";
 
             File file = new File(filename);
             if (!file.exists()) {
@@ -162,18 +151,13 @@ public class Peer extends Node implements PeerInterface{
 
     private static boolean loadPeerStorage() {
         try {
-            String filenameUnix = "Storage/" + peer_id + "/storage.ser";
-            String filenameWin = "Storage\\" + peer_id + "\\storage.ser";
+            String filenameUnix = "Storage/storage.ser";
 
             File file = new File(filenameUnix);
             String filename = filenameUnix;
 
             if (!file.exists()) {
-                file = new File(filenameWin);
-                filename = filenameWin;
-                if (!file.exists()) {
-                    return false;
-                }
+                return false;
             }
 
             FileInputStream fileIn = new FileInputStream(filename);
@@ -192,7 +176,7 @@ public class Peer extends Node implements PeerInterface{
     }
 
     public static void initiateStorage() {
-        storage = new Storage(peer_id);
+        storage = new Storage();
     }
 
     public static Peer getPeer() {
@@ -201,11 +185,6 @@ public class Peer extends Node implements PeerInterface{
 
     public static Storage getStorage() {
         return storage;
-    }
-
-
-    public static int getPeer_id() {
-        return peer_id;
     }
 
     /////////////////////////////////////////
@@ -387,7 +366,7 @@ public class Peer extends Node implements PeerInterface{
         file.prepareChunks(replication_degree);
 
         //File store
-        this.storage.storeFile(file, this.peer_id);
+        this.storage.storeFile(file);
 
         //Send PUTCHUNK message for each file's chunk
         Iterator<Chunk> chunkIterator = file.getChunks().iterator();
@@ -395,7 +374,7 @@ public class Peer extends Node implements PeerInterface{
 
         while(chunkIterator.hasNext()) {
             Chunk chunk = chunkIterator.next();
-            byte msg[] = messageFactory.putChunkMsg(chunk, replication_degree, this.peer_id);
+            byte msg[] = messageFactory.putChunkMsg(chunk, replication_degree);
             new Thread(new SendMessagesManager(msg)).start();
             String messageString = messageFactory.getMessageString();
             System.out.printf("Sent message: %s\n", messageString);
@@ -431,7 +410,7 @@ public class Peer extends Node implements PeerInterface{
                     Chunk chunk = chunkIterator.next();
                     //Prepare message to send
                     MessageFactory messageFactory = new MessageFactory();
-                    byte[] msg = messageFactory.getChunkMsg(this.peer_id, fileInfo.getFileId(), chunk.getChunk_no());
+                    byte[] msg = messageFactory.getChunkMsg(fileInfo.getFileId(), chunk.getChunk_no());
                     String messageString = messageFactory.getMessageString();
 
                     //Send message
@@ -468,7 +447,7 @@ public class Peer extends Node implements PeerInterface{
                     Chunk chunk = chunkIterator.next();
                     //Prepare message to send
                     MessageFactory messageFactory = new MessageFactory();
-                    byte msg[] = messageFactory.deleteMsg(chunk, this.peer_id);
+                    byte msg[] = messageFactory.deleteMsg(chunk);
                     //Send message
                     new Thread(new SendMessagesManager(msg)).start();
                     String messageString = messageFactory.getMessageString();
@@ -504,7 +483,7 @@ public class Peer extends Node implements PeerInterface{
                     deletedSpace += chunk.getChunk_size();
 
                     MessageFactory messageFactory = new MessageFactory();
-                    byte msg[] = messageFactory.reclaimMsg(chunk, this.peer_id);
+                    byte msg[] = messageFactory.reclaimMsg(chunk);
                     new Thread(new SendMessagesManager(msg)).start();
                     String messageString = messageFactory.getMessageString();
                     System.out.printf("Sent message: %s\n", messageString);
@@ -516,7 +495,7 @@ public class Peer extends Node implements PeerInterface{
                     this.storage.decrementChunkOccurences(chunkKey);
 
                     if (this.storage.getChunkCurrentDegree(chunkKey) < chunk.getDesired_replication_degree()) {
-                        byte msg2[] = messageFactory.putChunkMsg(chunk, chunk.getDesired_replication_degree(), this.peer_id);
+                        byte msg2[] = messageFactory.putChunkMsg(chunk, chunk.getDesired_replication_degree());
                         Random random = new Random();
                         int random_value = random.nextInt(401);
                         Peer.getThreadExecutor().schedule(new SendMessagesManager(msg2), random_value, TimeUnit.MILLISECONDS);

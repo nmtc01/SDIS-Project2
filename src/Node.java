@@ -15,7 +15,6 @@ public class Node {
         this.port = port;
         this.address = address;
         try {
-            //TODO ids em bytes, nao em string
             this.id = new BigInteger(Utility.sha256(this.address+":"+this.port));
         } catch (NoSuchAlgorithmException e) {
             e.printStackTrace();
@@ -33,36 +32,18 @@ public class Node {
     ///// MESSAGES ////
 
     public Node requestFindSucc(BigInteger nodeToSearchId, BigInteger preservedId) {
-        //Create socket
-        try {
-            InetAddress host_name = InetAddress.getByName(address);
-            SSLSocket sslSocket = (SSLSocket) SSLSocketFactory.getDefault().createSocket(host_name, port);
+        //Create request
+        MessageFactory messageFactory = new MessageFactory();
+        byte[] message = messageFactory.findSuccMsg();
 
-            /*if (cypher_suite.length > 0) {
-                sslSocket.setEnabledCipherSuites(cypher_suite);
-            }*/
+        //Send request
+        Peer.getThreadExecutor().execute(new SendMessagesManager(message));
 
-            PrintWriter out = new PrintWriter(sslSocket.getOutputStream(), true);
-            // BufferedReader in = new BufferedReader(new InputStreamReader(sslSocket.getInputStream()));
-
-            //TODO check this
-            MessageFactory messageFactory = new MessageFactory();
-            byte[] message = messageFactory.findSuccMsg();
-
-            out.flush();
-            out.println(message);
-
-            //String reply = in.readLine();
-
-            //TODO see what to do with reply
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        //TODO missing returns
+        //TODO missing returns - change to void, receiving on ReceivedMessagesManager
         return null;
     }
 
+    //TODO
     public Node requestFindPred(){
         //Create socket
         try {

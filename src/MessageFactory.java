@@ -7,12 +7,12 @@ public class MessageFactory {
         return messageString;
     }
 
-    //PUTCHUNK <SenderId> <FileId> <ChunkNo> <ReplicationDeg> <CRLF><CRLF><Body>
-    public byte[] putChunkMsg(Chunk chunk, Integer replication_degree, int peer_id) {
+    //PUTCHUNK <FileId> <ChunkNo> <ReplicationDeg> <CRLF><CRLF><Body>
+    public byte[] putChunkMsg(Chunk chunk, Integer replication_degree) {
 
         String fileId = chunk.getFile_id();
         int chunkNo = chunk.getChunk_no();
-        this.messageString = "PUTCHUNK" + " " + peer_id + " " + fileId + " " + chunkNo + " " + replication_degree;
+        this.messageString = "PUTCHUNK" + " " + fileId + " " + chunkNo + " " + replication_degree;
         String headerTerms = this.messageString + " \r\n\r\n";
         byte[] header = headerTerms.getBytes();
         byte[] content = chunk.getContent();
@@ -23,10 +23,10 @@ public class MessageFactory {
         return putchunkMsg;
     }
 
-    //STORED <SenderId> <FileId> <ChunkNo> <CRLF><CRLF>
-    public byte[] storedMsg(int senderId, String fileId, int chunkNo) {
+    //STORED <FileId> <ChunkNo> <CRLF><CRLF>
+    public byte[] storedMsg(String fileId, int chunkNo) {
 
-        this.messageString = "STORED" + " " + senderId + " " + fileId + " " + chunkNo;
+        this.messageString = "STORED" + " " + fileId + " " + chunkNo;
         String headerTerms = this.messageString + " \r\n\r\n";
         byte[] header = headerTerms.getBytes();
         byte[] storedMsg = new byte[header.length];
@@ -35,10 +35,10 @@ public class MessageFactory {
         return storedMsg;
     }
 
-    //GETCHUNK <SenderId> <FileId> <ChunkNo> <CRLF><CRLF>
-    public byte[] getChunkMsg(int senderId, String fileId, int chunkNo) {
+    //GETCHUNK <FileId> <ChunkNo> <CRLF><CRLF>
+    public byte[] getChunkMsg(String fileId, int chunkNo) {
 
-        this.messageString = "GETCHUNK" + " " + senderId + " " + fileId + " " + chunkNo;
+        this.messageString = "GETCHUNK" + " " + fileId + " " + chunkNo;
         String headerTerms = this.messageString + " \r\n\r\n";
         byte[] header = headerTerms.getBytes();
         byte[] getChunkMsg = new byte[header.length + header.length];
@@ -47,9 +47,9 @@ public class MessageFactory {
         return getChunkMsg;
     }
 
-    //CHUNK <SenderId> <FileId> <ChunkNo> <CRLF><CRLF><Body>
-    public byte[] chunkMsg(int senderId, String fileId, int chunkNo, byte[] body) {
-        this.messageString = "CHUNK" + " " + senderId + " " + fileId + " " + chunkNo;
+    //CHUNK <FileId> <ChunkNo> <CRLF><CRLF><Body>
+    public byte[] chunkMsg(String fileId, int chunkNo, byte[] body) {
+        this.messageString = "CHUNK" + " " + fileId + " " + chunkNo;
         String headerTerms = this.messageString + " \r\n\r\n";
         byte[] header = headerTerms.getBytes();
         byte[] chunkMsg = new byte[header.length + body.length];
@@ -59,11 +59,11 @@ public class MessageFactory {
         return chunkMsg;
     }
 
-    //DELETE <SenderId> <FileId> <CRLF><CRLF>
-    public byte[] deleteMsg(Chunk chunk, int senderId) {
+    //DELETE <FileId> <CRLF><CRLF>
+    public byte[] deleteMsg(Chunk chunk) {
 
         String fileId = chunk.getFile_id();
-        this.messageString = "DELETE" + " " + senderId + " " + fileId;
+        this.messageString = "DELETE" + " " + fileId;
         String deleteString = this.messageString + " \r\n\r\n";
         byte[] header = deleteString.getBytes();
         byte[] deleteMsg = new byte[header.length];
@@ -72,12 +72,12 @@ public class MessageFactory {
         return deleteMsg;
     }
 
-    //REMOVED <SenderId> <FileId> <ChunkNo> <CRLF><CRLF>
-    public byte[] reclaimMsg(Chunk chunk, int senderId) {
+    //REMOVED <FileId> <ChunkNo> <CRLF><CRLF>
+    public byte[] reclaimMsg(Chunk chunk) {
 
         String fileId = chunk.getFile_id();
         int chunkNo = chunk.getChunk_no();
-        this.messageString = "REMOVED" + " " + senderId + " " + fileId + " " + chunkNo;
+        this.messageString = "REMOVED" + " " + fileId + " " + chunkNo;
         String reclaimString = this.messageString + " \r\n\r\n";
         byte[] header = reclaimString.getBytes();
         byte[] reclaimMsg = new byte[header.length];
