@@ -32,7 +32,7 @@ public class Node {
 
     ///// MESSAGES ////
 
-    public Node requestFindSucc(BigInteger nodeToSearchId, BigInteger preservedId) {
+    public Node requestFindSucc(BigInteger msgId, String ip, int port, BigInteger id) {
         //Create socket
         try {
             InetAddress host_name = InetAddress.getByName(address);
@@ -45,9 +45,11 @@ public class Node {
             PrintWriter out = new PrintWriter(sslSocket.getOutputStream(), true);
             // BufferedReader in = new BufferedReader(new InputStreamReader(sslSocket.getInputStream()));
 
-            //TODO check this
+            //TODO check this - byte string stuff
             MessageFactory messageFactory = new MessageFactory();
-            byte[] message = messageFactory.findSuccMsg();
+            byte[] message = messageFactory.findSuccMsg(msgId,ip,port,id);
+
+            System.out.println("Sending message: "+message);
 
             out.flush();
             out.println(message);
