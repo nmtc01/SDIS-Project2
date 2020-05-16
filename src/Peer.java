@@ -341,7 +341,7 @@ public class Peer extends Node implements PeerInterface{
             fingerTable[i] = requestFindSucc(this.getNodeId(), fingerTable[i].getAddress(),fingerTable[i].getPort(),getFinger(i));
 
            while(fingerTable[i] == null){
-               //todo block - considering handling this in another thread, so that it can process all fingers
+               //todo block - consider handling this in another thread, so that it can process all fingers without locking the node
            }
         }
 

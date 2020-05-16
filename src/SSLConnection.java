@@ -21,7 +21,7 @@ public class SSLConnection implements Runnable {
         SSLServerSocketFactory sslServerSocketFactory = (SSLServerSocketFactory) SSLServerSocketFactory.getDefault();
         SSLServerSocket serverSocket;
         try {
-            serverSocket = (SSLServerSocket) sslServerSocketFactory.createServerSocket(80); // TODO change port
+            serverSocket = (SSLServerSocket) sslServerSocketFactory.createServerSocket(Peer.getPeer().getPort());
 
             while (true) {
                 SSLSocket clientSocket = (SSLSocket) serverSocket.accept();
