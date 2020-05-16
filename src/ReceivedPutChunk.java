@@ -15,7 +15,7 @@ public class ReceivedPutChunk implements Runnable {
     public void run() {
         if(manageStorage()) {
             MessageFactory messageFactory = new MessageFactory();
-            byte msg[] = messageFactory.storedMsg(Peer.getPeer_id(), this.fileId, this.chunkNo);
+            byte msg[] = messageFactory.storedMsg(this.fileId, this.chunkNo);
             new Thread(new SendMessagesManager(msg)).start();
             System.out.printf("Sent message: %s\n", messageFactory.getMessageString());
         }
