@@ -6,6 +6,7 @@ import java.util.Random;
 import java.util.concurrent.TimeUnit;
 
 public class ReceivedMessagesManager implements Runnable {
+
     private String[] header;
     private byte[] body;
     private SSLSocket sslSocket;
@@ -72,7 +73,7 @@ public class ReceivedMessagesManager implements Runnable {
                 break;
             }
             case "SUCC": {
-                manageSucc();
+                //manageSucc();
             }
             default:
                 break;
@@ -89,6 +90,10 @@ public class ReceivedMessagesManager implements Runnable {
         this.header = headerStr.split(" ");
         this.body = Arrays.copyOfRange(data, index+4, data.length);
     }
+    
+    ////////////////////////////////
+    /// BACKUP PROTOCOL MESSAGES ///
+    ////////////////////////////////
 
     private void managePutChunk(String fileId, int chunkNo, int repDeg, byte[] body) {
         System.out.printf("Received message: PUTCHUNK %s %d %d\n", fileId, chunkNo, repDeg);
@@ -134,13 +139,26 @@ public class ReceivedMessagesManager implements Runnable {
         Peer.getThreadExecutor().schedule(receivedDelete, random_value, TimeUnit.MILLISECONDS);
     }
 
-    private void manageFindSucc(String address, int port, BigInteger requestId, BigInteger idToFind) {
-        System.out.printf("Received message: FINDSUCC %d %s\n");
+    //////////////////////
+    /// CHORD MESSAGES ///
+    /////////////////////
 
-        ReceivedFindSucc receivedFindSucc = new ReceivedFindSucc(address, port, requestId, idToFind);
+    private void manageFindSucc(BigInteger msgId, String address, int port, BigInteger id) {
+        System.out.printf("Received message: FINDSUCC " + msgId+" "+address+" "+ port + " "+id);
+
+        ReceivedFindSucc receivedFindSucc = new ReceivedFindSucc(address, port, id);
         Peer.getThreadExecutor().execute(receivedFindSucc);
     }
 
-    private void manageSucc() {
+    private void manageSucc(BigInteger msgId, BigInteger succId) {
+        System.out.printf("Received message: SUCC " + msgId+" "+succId);
+
+        /* SAMPLE
+        //todo received find succ -  be careful how this is done because of the find fingers successor
+        ReceivedFindSucc receivedFindSucc = new ReceivedFindSucc(msgId, address, port, id);
+        Peer.getThreadExecutor().execute(receivedFindSucc);
+        */
+
     }
+
 }

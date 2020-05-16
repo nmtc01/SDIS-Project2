@@ -7,6 +7,7 @@ import java.net.UnknownHostException;
 import java.security.NoSuchAlgorithmException;
 
 public class Node {
+
     private int port;
     private String address;
     private BigInteger id;
@@ -31,15 +32,14 @@ public class Node {
 
     ///// MESSAGES ////
 
-    public Node requestFindSucc(BigInteger nodeToSearchId, BigInteger preservedId) {
-        //Create request
+    public Node requestFindSucc(BigInteger msgId, String ip, int port, BigInteger id) {
+        //Create socket
         MessageFactory messageFactory = new MessageFactory();
-        byte[] message = messageFactory.findSuccMsg();
+        byte[] message = messageFactory.findSuccMsg(msgId,ip,port,id);
 
-        //Send request
-        Peer.getThreadExecutor().execute(new SendMessagesManager(message));
+        Peer.getThreadExecutor().execute(new SendMessagesManager(message, this.address, this.port));
 
-        //TODO missing returns - change to void, receiving on ReceivedMessagesManager
+        //TODO missing returns
         return null;
     }
 
@@ -71,22 +71,16 @@ public class Node {
         return null;
     }
 
-    public Node requestNotify(BigInteger requestId, Node node){ return null; }
+    public Node requestNotify(BigInteger requestId, Node node){
+
+        return null;
+    }
 
     public boolean testResponse(BigInteger id){
 
-        //test duriing a certeain time to communicate with the predecessor, if it succeeds return false if it fails return true;
-        //function to test connection hasfailed on peer
+        //test during a certain time to communicate with the predecessor, if it succeeds return false if it fails return true;
+        //function to test connection has failed on peer
         return true;
-    }
-
-    /**
-     * Funtion to send over tcp succ node id
-     * @param requestNode
-     * @param succNode
-     */
-    public void answerFindSucc(Node requestNode, BigInteger succNode){
-        return;
     }
 
 }

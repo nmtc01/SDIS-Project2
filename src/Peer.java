@@ -31,36 +31,35 @@ public class Peer extends Node implements PeerInterface{
 
         for (int i = 0; i < fingerTable.length; i++)
             fingerTable[i] = this;
+
+        System.out.println("Peer - "+this.getAddress()+":"+this.getPort());
+        //Todo uncomment this after checking that join works
+        // threadExecutor.scheduleAtFixedRate( new ChordManager(this), 30, 30, TimeUnit.SECONDS);
     }
 
     public Peer(String ipAddress, int port, String initAddress, int initPort) {
         super(ipAddress, port);
         succNode = this;
+
+        System.out.println("Peer - "+this.getAddress()+":"+this.getPort());
+
         this.join(new Node(initAddress, initPort));
+
+        //Todo uncomment this after checking that join works
+        // threadExecutor.scheduleAtFixedRate( new ChordManager(this), 30, 30, TimeUnit.SECONDS);
     }
 
 
     public static void main(String args[]) {
+
         System.out.println("Starting Peer Protocol");
         //Parse args
         if (!parseArgs(args))
             return;
 
         //Create executor
-        threadExecutor = (ScheduledThreadPoolExecutor) Executors.newScheduledThreadPool(10);
+        threadExecutor = (ScheduledThreadPoolExecutor) Executors.newScheduledThreadPool(200);
         threadExecutor.execute(new SSLConnection(port, ipAddress));
-
-        //todo create stabilize thread every X time call stabilize function
-        /*
-         this thread should call receive as args (Peer node)
-         and call :
-            node.stabilize();
-            node.fixFingers();
-            node.checkPred();
-
-        repeat over time
-
-         */
 
         //Create initiator peer
         if (args.length == 6) {
@@ -195,10 +194,13 @@ public class Peer extends Node implements PeerInterface{
      * JOIN - join chord using ring containing node n'
      */
     public void join(Node initNode) {
-        succNode = initNode.requestFindSucc(this.getNodeId(), this.getNodeId());
+
+        succNode = initNode.requestFindSucc(this.getNodeId(), this.getAddress(),this.getPort(), this.getNodeId());
 
         //open thread to wait for the response
-        //while (succNode == null) { }
+        while (succNode == null) {
+            //block this process until a successor is found
+        }
 
         predNode = succNode;
 
@@ -222,21 +224,21 @@ public class Peer extends Node implements PeerInterface{
             return false;
     }
 
-    public Node findSucc(BigInteger nodeToSearchId, BigInteger preservedId){
+    public Node findSucc( String address, int port, BigInteger id){
 
         //case its the same id return itself
-        if(preservedId.equals(this.getNodeId()))
+        if(id.equals(this.getNodeId()))
             return this;
 
-        if( fallsBetween(preservedId,this.getNodeId(),succNode.getNodeId())){
+        if( fallsBetween(id,this.getNodeId(),succNode.getNodeId())){
             return succNode;
         }else{
-            Node newNode = closestPrecedNode(preservedId);
+            Node newNode = closestPrecedNode(id);
 
             if(newNode.getNodeId().equals(this.getNodeId()))
                 return this;
 
-            return newNode.requestFindSucc(this.getNodeId(),preservedId);
+            return newNode.requestFindSucc(this.getNodeId(),address, port,id);
         }
 
         //this should be unreachable here <---
@@ -273,7 +275,7 @@ public class Peer extends Node implements PeerInterface{
         if(x != null
                 && !this.getNodeId().equals(x.getNodeId())
                 &&  fallsBetween(x.getNodeId(), this.getNodeId(), succNode.getNodeId())
-                    || this.getNodeId().equals(this.succNode.getNodeId() )
+                    || this.getNodeId().equals(succNode.getNodeId() )
         ){
             fingerTable[0] = x;
             succNode = x;
@@ -291,7 +293,7 @@ public class Peer extends Node implements PeerInterface{
             if(predecessor is nil or n' falls into predecessor,n))
                 predecessor = n';
          */
-         if ( this.predNode == null
+         if ( predNode == null
                  || fallsBetween(node.getNodeId(), predNode.getNodeId(), this.getNodeId())
                  || !predNode.getNodeId().equals(this.getNodeId())
          ){
@@ -319,7 +321,11 @@ public class Peer extends Node implements PeerInterface{
     public void fixFingers(){
 
         for (int i = 1; i < fingerTable.length; i++) {
-            fingerTable[i] = requestFindSucc(this.getNodeId(), getFinger(i));
+            fingerTable[i] = requestFindSucc(this.getNodeId(), fingerTable[i].getAddress(),fingerTable[i].getPort(),getFinger(i));
+
+           while(fingerTable[i] == null){
+               //todo block - consider handling this in another thread, so that it can process all fingers without locking the node
+           }
         }
 
     }
@@ -366,7 +372,7 @@ public class Peer extends Node implements PeerInterface{
         file.prepareChunks(replication_degree);
 
         //File store
-        this.storage.storeFile(file);
+        storage.storeFile(file);
 
         //Send PUTCHUNK message for each file's chunk
         Iterator<Chunk> chunkIterator = file.getChunks().iterator();
@@ -406,7 +412,7 @@ public class Peer extends Node implements PeerInterface{
                 Set<Chunk> chunks = peerStorage.getStoredFiles().get(i).getChunks();
                 Iterator<Chunk> chunkIterator = chunks.iterator();
                 //For each chunk
-                while (chunkIterator.hasNext()) {
+                while(chunkIterator.hasNext()){
                     Chunk chunk = chunkIterator.next();
                     //Prepare message to send
                     MessageFactory messageFactory = new MessageFactory();
@@ -417,7 +423,9 @@ public class Peer extends Node implements PeerInterface{
                     new Thread(new SendMessagesManager(msg)).start();
                     System.out.printf("Sent message: %s\n", messageString);
                 }
-                while (fileInfo.getChunks().size() != this.storage.getRestoreChunks().size()) {}
+
+                while(fileInfo.getChunks().size() != storage.getRestoreChunks().size()) {}
+
                 new Thread(new RestoreChunks(file)).start();
                 break;
             }
@@ -432,13 +440,13 @@ public class Peer extends Node implements PeerInterface{
     public synchronized String delete(String file_path) {
         boolean file_exists = false;
         FileInfo fileInfo;
-        for (int i = 0; i < this.storage.getStoredFiles().size(); i++) {
-            if (this.storage.getStoredFiles().get(i).getFile().getName().equals(file_path)) {
+        for (int i = 0; i < storage.getStoredFiles().size(); i++) {
+            if (storage.getStoredFiles().get(i).getFile().getName().equals(file_path)) {
                 file_exists = true;
 
                 //Get previously backed up file
-                fileInfo = this.storage.getStoredFiles().get(i);
-                this.storage.getDeletedFiles().add(fileInfo);
+                fileInfo = storage.getStoredFiles().get(i);
+                storage.getDeletedFiles().add(fileInfo);
                 //Get file chunks
                 Set<Chunk> chunks = fileInfo.getChunks();
                 Iterator<Chunk> chunkIterator = chunks.iterator();
@@ -454,7 +462,7 @@ public class Peer extends Node implements PeerInterface{
                     System.out.printf("Sent message: %s\n", messageString);
                 }
                 //Delete file
-                this.storage.deleteFile(fileInfo);
+                storage.deleteFile(fileInfo);
 
                 break;
             }
@@ -468,14 +476,14 @@ public class Peer extends Node implements PeerInterface{
     @Override
     public synchronized String reclaim(Integer max_space) {
 
-        double spaceUsed = this.storage.getOccupiedSpace();
+        double spaceUsed = storage.getOccupiedSpace();
         double spaceClaimed = max_space; //The client shall specify the maximum disk space in KBytes (1KByte = 1000 bytes)
 
         double tmpSpace = spaceUsed - spaceClaimed;
 
         if (tmpSpace > 0) {
             double deletedSpace = 0;
-            Iterator<Chunk> chunkIterator = this.storage.getStoredChunks().iterator();
+            Iterator<Chunk> chunkIterator = storage.getStoredChunks().iterator();
 
             while (chunkIterator.hasNext()) {
                 Chunk chunk = chunkIterator.next();
@@ -488,11 +496,11 @@ public class Peer extends Node implements PeerInterface{
                     String messageString = messageFactory.getMessageString();
                     System.out.printf("Sent message: %s\n", messageString);
 
-                    String filepath = this.storage.getDirectory().getPath() + "/file" + chunk.getFile_id() + "/chunk" + chunk.getChunk_no();
+                    String filepath = storage.getDirectory().getPath() + "/file" + chunk.getFile_id() + "/chunk" + chunk.getChunk_no();
                     File file = new File(filepath);
                     file.delete();
                     String chunkKey = chunk.getFile_id() + "-" + chunk.getChunk_no();
-                    this.storage.decrementChunkOccurences(chunkKey);
+                    storage.decrementChunkOccurences(chunkKey);
 
                     if (this.storage.getChunkCurrentDegree(chunkKey) < chunk.getDesired_replication_degree()) {
                         byte msg2[] = messageFactory.putChunkMsg(chunk, chunk.getDesired_replication_degree());
@@ -509,7 +517,7 @@ public class Peer extends Node implements PeerInterface{
                 }
             }
 
-            this.storage.reclaimSpace(max_space);
+            storage.reclaimSpace(max_space);
 
         }
 
@@ -520,8 +528,8 @@ public class Peer extends Node implements PeerInterface{
     public synchronized Storage state() {
         //For each file whose backup it has initiated
         System.out.println("-> For each file whose backup it has initiated:");
-        for (int i = 0; i < this.storage.getStoredFiles().size(); i++) {
-            FileInfo fileInfo = this.storage.getStoredFiles().get(i);
+        for (int i = 0; i < storage.getStoredFiles().size(); i++) {
+            FileInfo fileInfo = storage.getStoredFiles().get(i);
 
             //File pathname
             String filename = fileInfo.getFile().getPath();
@@ -545,7 +553,7 @@ public class Peer extends Node implements PeerInterface{
                 System.out.println("\t  Chunk id: "+chunk_id);
 
                 //Perceived replication degree
-                int repDegree = this.storage.getChunkCurrentDegree(chunk_id);
+                int repDegree = storage.getChunkCurrentDegree(chunk_id);
                 System.out.println("\t  Perceived replication degree: "+repDegree);
 
             }
@@ -553,8 +561,8 @@ public class Peer extends Node implements PeerInterface{
 
         //For each chunk it stores
         System.out.println("-> For each chunk it stores:");
-        for (int i = 0; i < this.storage.getStoredChunks().size(); i++) {
-            Chunk chunk = this.storage.getStoredChunks().get(i);
+        for (int i = 0; i < storage.getStoredChunks().size(); i++) {
+            Chunk chunk = storage.getStoredChunks().get(i);
 
             //Chunk id
             String chunk_id = chunk.getFile_id()+"-"+chunk.getChunk_no();
@@ -565,11 +573,11 @@ public class Peer extends Node implements PeerInterface{
             System.out.println("\tChunk size: "+size);
 
             //Perceived replication degree
-            int repDeg = this.storage.getChunkCurrentDegree(chunk_id);
+            int repDeg = storage.getChunkCurrentDegree(chunk_id);
             System.out.println("\tPerceived replication degree: "+repDeg);
         }
 
-        return this.storage;
+        return storage;
     }
 
     /**

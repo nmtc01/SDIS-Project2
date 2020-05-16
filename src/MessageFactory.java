@@ -1,3 +1,5 @@
+import java.math.BigInteger;
+
 public class MessageFactory {
     private String messageString;
 
@@ -86,14 +88,16 @@ public class MessageFactory {
         return reclaimMsg;
     }
 
-    public byte[] findSuccMsg(/*NodeId*/) {
-        this.messageString = "FINDSUCC " /*+ node.getNodeId()*/ + " \n";
+    //FINDSUCC <SenderId> <ReqIpAdress> <ReqPort> <ReqId> <CRLF><CRLF>
+    public byte[] findSuccMsg(BigInteger msgId, String ip, int port, BigInteger id) {
+        this.messageString = "FINDSUCC "+msgId+" "+ip+" "+port+" "+id+" \r\n\r\n";
         String request = this.messageString;
         return request.getBytes();
     }
 
-    public byte[] replySuccMsg() {
-        this.messageString = "SUCC " + /* NODE ID*/ " \n";
+    //SUCC <SenderId> <SuccId> <CRLF><CRLF>
+    public byte[] replySuccMsg(BigInteger msgId, BigInteger succId) {
+        this.messageString = "SUCC " + msgId+ " "+ succId+" \r\n\r\n";
         String request = this.messageString;
         return request.getBytes();
     }
