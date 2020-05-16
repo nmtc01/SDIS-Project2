@@ -59,6 +59,9 @@ public class Node {
             //String reply = in.readLine();
 
             //TODO see what to do with reply
+
+            sslSocket.close();
+
         } catch (IOException e) {
             e.printStackTrace();
         }

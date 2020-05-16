@@ -29,6 +29,7 @@ public class ReceivedMessagesManager implements Runnable {
 
             //TODO parse
             String req = new String(request);
+            System.out.println("DEBUG - RECEIVED: "+req);
 
             String[] r = req.split("\\s+");
 

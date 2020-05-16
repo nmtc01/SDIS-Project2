@@ -21,6 +21,7 @@ public class SSLConnection implements Runnable {
     public void run() {
         SSLServerSocketFactory sslServerSocketFactory = (SSLServerSocketFactory) SSLServerSocketFactory.getDefault();
         SSLServerSocket serverSocket;
+
         try {
 
             serverSocket = (SSLServerSocket) sslServerSocketFactory.createServerSocket(this.peer.getPort());
@@ -30,8 +31,11 @@ public class SSLConnection implements Runnable {
 
                 Peer.getThreadExecutor().execute(new ReceivedMessagesManager(clientSocket));
             }
+
         } catch (IOException e) {
-            e.printStackTrace();
+            System.out.println("Server - Failed to create SSLServerSocket");
+            e.getMessage();
+            return;
         }
 
     }

@@ -256,16 +256,14 @@ public class Peer extends Node implements PeerInterface{
 
         if( fallsBetween(id,this.getNodeId(),succNode.getNodeId())){
             return succNode;
-        }else{
-            Node newNode = closestPrecedNode(id);
-
-            if(newNode.getNodeId().equals(this.getNodeId()))
-                return this;
-
-            return newNode.requestFindSucc(this.getNodeId(),address, port,id);
         }
 
-        //this should be unreachable here <---
+        Node newNode = closestPrecedNode(id);
+
+        if(newNode.getNodeId().equals(this.getNodeId()))
+            return this;
+
+        return newNode.requestFindSucc(this.getNodeId(),address, port,id);
 
     }
 
