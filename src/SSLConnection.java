@@ -10,10 +10,11 @@ import java.util.concurrent.TimeUnit;
 
 
 public class SSLConnection implements Runnable {
-    //Peer peer;
 
-    SSLConnection(/*Peer peer*/) {
-        //this.peer = peer;
+    Peer peer;
+
+    SSLConnection(Peer peer) {
+        this.peer = peer;
     }
 
     @Override
@@ -21,7 +22,8 @@ public class SSLConnection implements Runnable {
         SSLServerSocketFactory sslServerSocketFactory = (SSLServerSocketFactory) SSLServerSocketFactory.getDefault();
         SSLServerSocket serverSocket;
         try {
-            serverSocket = (SSLServerSocket) sslServerSocketFactory.createServerSocket(Peer.getPeer().getPort());
+
+            serverSocket = (SSLServerSocket) sslServerSocketFactory.createServerSocket(this.peer.getPort());
 
             while (true) {
                 SSLSocket clientSocket = (SSLSocket) serverSocket.accept();

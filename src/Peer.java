@@ -35,6 +35,9 @@ public class Peer extends Node implements PeerInterface{
         for (int i = 0; i < fingerTable.length; i++)
             fingerTable[i] = this;
 
+        System.out.println("Peer - "+this.getAddress()+":"+this.getPort());
+
+        threadExecutor.execute(new SSLConnection(this));
         //Todo uncomment this after checking that join works
         // threadExecutor.scheduleAtFixedRate( new ChordManager(this), 30, 30, TimeUnit.SECONDS);
     }
@@ -43,6 +46,11 @@ public class Peer extends Node implements PeerInterface{
         super(ipAddress, port);
         peer_id = id;
         succNode = this;
+
+        System.out.println("Peer - "+this.getAddress()+":"+this.getPort());
+
+        threadExecutor.execute(new SSLConnection(this));
+
         this.join(new Node(initAddress, initPort));
 
         //Todo uncomment this after checking that join works
@@ -58,8 +66,7 @@ public class Peer extends Node implements PeerInterface{
             return;
 
         //Create executor
-        threadExecutor = (ScheduledThreadPoolExecutor) Executors.newScheduledThreadPool(10);
-        threadExecutor.execute(new SSLConnection());
+        threadExecutor = (ScheduledThreadPoolExecutor) Executors.newScheduledThreadPool(200);
 
         //Create initiator peer
 

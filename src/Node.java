@@ -7,6 +7,7 @@ import java.net.UnknownHostException;
 import java.security.NoSuchAlgorithmException;
 
 public class Node {
+
     private int port;
     private String address;
     private BigInteger id;
@@ -35,8 +36,9 @@ public class Node {
     public Node requestFindSucc(BigInteger msgId, String ip, int port, BigInteger id) {
         //Create socket
         try {
-            InetAddress host_name = InetAddress.getByName(address);
-            SSLSocket sslSocket = (SSLSocket) SSLSocketFactory.getDefault().createSocket(host_name, port);
+
+            //InetAddress host_name = InetAddress.getByName(address);
+            SSLSocket sslSocket = (SSLSocket) SSLSocketFactory.getDefault().createSocket(this.address, this.port);
 
             /*if (cypher_suite.length > 0) {
                 sslSocket.setEnabledCipherSuites(cypher_suite);
