@@ -6,6 +6,7 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.net.InetAddress;
+import java.nio.charset.StandardCharsets;
 
 public class SSLConnection implements Runnable {
 
@@ -27,14 +28,14 @@ public class SSLConnection implements Runnable {
 
             dos = new DataOutputStream(sslSocket.getOutputStream());
             // BufferedReader in = new BufferedReader(new InputStreamReader(sslSocket.getInputStream()));
-            System.out.println("Sending message: "+msg + " to "+this.ipAddress+":"+this.port);
+            System.out.println("Sending message: "+ new String(msg, StandardCharsets.UTF_8) + " to "+this.ipAddress+":"+this.port);
 
             dos.write(msg);
             dos.flush();
 
             //String reply = in.readLine();
 
-            //sslSocket.close();
+            sslSocket.close();
 
         } catch (IOException e) {
             e.printStackTrace();

@@ -16,14 +16,15 @@ public class ReceivedFindSucc implements Runnable {
 
     @Override
     public void run() {
+
         Node node = Peer.getPeer().findSucc(this.address, this.port, this.id);
 
         if (node != null) {
 
             MessageFactory messageFactory = new MessageFactory();
-            byte[] message = messageFactory.replySuccMsg(Peer.getPeer().getNodeId(),node.getNodeId());
+            byte[] message = messageFactory.replySuccMsg(node.getNodeId(),this.id);
 
-            SendMessagesManager sendMessagesManager = new SendMessagesManager(message);
+            SendMessagesManager sendMessagesManager = new SendMessagesManager(message, this.address, this.port);
 
             Peer.getThreadExecutor().execute(sendMessagesManager);
         }

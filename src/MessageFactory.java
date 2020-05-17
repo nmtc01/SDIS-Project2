@@ -9,6 +9,10 @@ public class MessageFactory {
         return messageString;
     }
 
+    ////////////////////////////////
+    /// BACKUP PROTOCOL MESSAGES ///
+    ////////////////////////////////
+
     //PUTCHUNK <FileId> <ChunkNo> <ReplicationDeg> <CRLF><CRLF><Body>
     public byte[] putChunkMsg(Chunk chunk, Integer replication_degree) {
 
@@ -88,21 +92,35 @@ public class MessageFactory {
         return reclaimMsg;
     }
 
+    //////////////////////
+    /// CHORD MESSAGES ///
+    //////////////////////
+
     //FINDSUCC <SenderId> <ReqIpAdress> <ReqPort> <ReqId> <CRLF><CRLF>
     public byte[] findSuccMsg(BigInteger msgId, String ip, int port, BigInteger id) {
         this.messageString = "FINDSUCC "+msgId+" "+ip+" "+port+" "+id+" \r\n\r\n";
+
         String request = this.messageString;
         byte[] header = request.getBytes();
         byte[] findSucc = new byte[header.length];
         System.arraycopy(header, 0, findSucc, 0, header.length);
+
         return findSucc;
     }
 
     //SUCC <SenderId> <SuccId> <CRLF><CRLF>
     public byte[] replySuccMsg(BigInteger msgId, BigInteger succId) {
+
         this.messageString = "SUCC " + msgId+ " "+ succId+" \r\n\r\n";
         String request = this.messageString;
-        return request.getBytes();
+
+        byte[] header = request.getBytes();
+        byte[] replySucc = new byte[header.length];
+
+        System.arraycopy(header,0,replySucc,0,header.length);
+
+        //return request.getBytes();
+        return replySucc;
     }
 
 }

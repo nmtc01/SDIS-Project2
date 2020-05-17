@@ -25,9 +25,12 @@ public class Peer extends Node implements PeerInterface{
     private static Node succNode;
 
     public Peer(String ipAddress, int port) {
+
         //create a new chord ring
         super(ipAddress, port);
         succNode = this;
+
+        System.out.println("Created with Id: "+this.getNodeId());
 
         for (int i = 0; i < fingerTable.length; i++)
             fingerTable[i] = this;
@@ -39,8 +42,11 @@ public class Peer extends Node implements PeerInterface{
     }
 
     public Peer(String ipAddress, int port, String initAddress, int initPort) {
+
         super(ipAddress, port);
         succNode = this;
+
+        System.out.println("Created with Id: "+this.getNodeId());
 
         System.out.println("Peer - "+this.getAddress()+":"+this.getPort());
 
@@ -226,7 +232,7 @@ public class Peer extends Node implements PeerInterface{
     }
 
     public Node findSucc( String address, int port, BigInteger id){
-
+        System.out.println("PEDIRE");
         //case its the same id return itself
         if(id.equals(this.getNodeId()))
             return this;
@@ -239,6 +245,7 @@ public class Peer extends Node implements PeerInterface{
 
         if(newNode.getNodeId().equals(this.getNodeId()))
             return this;
+
 
         return newNode.requestFindSucc(this.getNodeId(),address, port,id);
 

@@ -18,6 +18,7 @@ public class ReceivedMessagesManager implements Runnable {
 
     @Override
     public void run() {
+
         //Read from connection
         try {
             /*
@@ -28,11 +29,70 @@ public class ReceivedMessagesManager implements Runnable {
             BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(this.sslSocket.getInputStream()));
 
             //TODO read byte[] instead of String
-            String request = bufferedReader.readLine();
+            String request = bufferedReader.readLine().trim();
 
-            //parseMsg(request);
+            String[] header = request.split(" ");
 
-            System.out.println("Received Message: " + request);
+            //System.out.println("Received Message: " + request);
+
+            //Manage subProtocol
+            System.out.println(header[0]);
+            String subProtocol = header[0];
+
+            switch (subProtocol) {
+                case "PUTCHUNK": {
+                    String fileId = header[1];
+                    int chunkNo = Integer.parseInt(header[2]);
+                    int repDeg = Integer.parseInt(header[3]);
+                    managePutChunk(fileId, chunkNo, repDeg, body);
+                    break;
+                }
+                case "STORED": {
+                    String fileId = header[1];
+                    int chunkNo = Integer.parseInt(header[2]);
+                    manageStored(fileId, chunkNo);
+                    break;
+                }
+                case "DELETE": {
+                    String fileId = header[1];
+                    manageDelete(fileId);
+                    break;
+                }
+                case "GETCHUNK": {
+                    String fileId = header[1];
+                    int chunkNo = Integer.parseInt(header[2]);
+                    manageGetChunk(fileId, chunkNo);
+                    break;
+                }
+                case "CHUNK": {
+                    String fileId = header[1];
+                    int chunkNo = Integer.parseInt(header[2]);
+                    manageChunk(fileId, chunkNo, body);
+                    break;
+                }
+                case "REMOVED": {
+                    String fileId = header[1];
+                    int chunkNo = Integer.parseInt(header[2]);
+                    manageRemoved(fileId, chunkNo);
+                    break;
+                }
+                case "FINDSUCC": {
+                    BigInteger msgId = new BigInteger(header[1]);
+                    String address = header[2];
+                    int port = Integer.parseInt(header[3]);
+                    BigInteger id = new BigInteger(header[4]);
+                    manageFindSucc(msgId, address, port,id);
+                    break;
+                }
+                case "SUCC": {
+                    BigInteger msgId = new BigInteger(header[1]);
+                    BigInteger succId = new BigInteger(header[2]);
+                    manageSucc(msgId,succId);
+                    break;
+                }
+                default:
+                    break;
+            }
 
             sslSocket.close();
 
@@ -40,55 +100,6 @@ public class ReceivedMessagesManager implements Runnable {
             e.printStackTrace();
         }
 
-        //Manage subProtocol
-        String subProtocol = header[0];
-        switch (subProtocol) {
-            case "PUTCHUNK": {
-                String fileId = header[1];
-                int chunkNo = Integer.parseInt(header[2]);
-                int repDeg = Integer.parseInt(header[3]);
-                managePutChunk(fileId, chunkNo, repDeg, body);
-                break;
-            }
-            case "STORED": {
-                String fileId = header[1];
-                int chunkNo = Integer.parseInt(header[2]);
-                manageStored(fileId, chunkNo);
-                break;
-            }
-            case "DELETE": {
-                String fileId = header[1];
-                manageDelete(fileId);
-                break;
-            }
-            case "GETCHUNK": {
-                String fileId = header[1];
-                int chunkNo = Integer.parseInt(header[2]);
-                manageGetChunk(fileId, chunkNo);
-                break;
-            }
-            case "CHUNK": {
-                String fileId = header[1];
-                int chunkNo = Integer.parseInt(header[2]);
-                manageChunk(fileId, chunkNo, body);
-                break;
-            }
-            case "REMOVED": {
-                String fileId = header[1];
-                int chunkNo = Integer.parseInt(header[2]);
-                manageRemoved(fileId, chunkNo);
-                break;
-            }
-            case "FINDSUCC": {
-                //manageFindSucc(address, port, requestId, idToFind);
-                break;
-            }
-            case "SUCC": {
-                //manageSucc();
-            }
-            default:
-                break;
-        }
     }
 
     public void parseMsg(byte[] data) {
@@ -155,6 +166,7 @@ public class ReceivedMessagesManager implements Runnable {
     /////////////////////
 
     private void manageFindSucc(BigInteger msgId, String address, int port, BigInteger id) {
+
         System.out.printf("Received message: FINDSUCC " + msgId+" "+address+" "+ port + " "+id);
 
         ReceivedFindSucc receivedFindSucc = new ReceivedFindSucc(address, port, id);
@@ -162,7 +174,10 @@ public class ReceivedMessagesManager implements Runnable {
     }
 
     private void manageSucc(BigInteger msgId, BigInteger succId) {
+
         System.out.printf("Received message: SUCC " + msgId+" "+succId);
+
+        //todo
 
         /* SAMPLE
         //todo received find succ -  be careful how this is done because of the find fingers successor
