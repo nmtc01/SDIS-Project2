@@ -2,6 +2,7 @@ import javax.net.ssl.SSLServerSocket;
 import javax.net.ssl.SSLServerSocketFactory;
 import javax.net.ssl.SSLSocket;
 import javax.net.ssl.SSLSocketFactory;
+import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.net.InetAddress;
@@ -10,6 +11,7 @@ public class SSLConnection implements Runnable {
 
     private int port;
     private String ipAddress;
+    private DataOutputStream dos;
 
     public SSLConnection(String ipAddress, int port) {
         this.port = port;
@@ -23,12 +25,12 @@ public class SSLConnection implements Runnable {
             //InetAddress host_name = InetAddress.getByName(this.ipAddress);
             SSLSocket sslSocket = (SSLSocket) SSLSocketFactory.getDefault().createSocket(this.ipAddress, this.port);
 
-            PrintWriter out = new PrintWriter(sslSocket.getOutputStream(), true);
+            dos = new DataOutputStream(sslSocket.getOutputStream());
             // BufferedReader in = new BufferedReader(new InputStreamReader(sslSocket.getInputStream()));
             System.out.println("Sending message: "+msg + " to "+this.ipAddress+":"+this.port);
 
-            out.flush();
-            out.println(msg);
+            dos.write(msg);
+            dos.flush();
 
             //String reply = in.readLine();
 

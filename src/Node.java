@@ -37,7 +37,6 @@ public class Node {
         //Create socket
         MessageFactory messageFactory = new MessageFactory();
         byte[] message = messageFactory.findSuccMsg(msgId,ip,port,id);
-
         Peer.getThreadExecutor().execute(new SendMessagesManager(message, this.address, this.port));
 
         return null;

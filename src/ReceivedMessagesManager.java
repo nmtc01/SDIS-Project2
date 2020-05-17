@@ -28,12 +28,11 @@ public class ReceivedMessagesManager implements Runnable {
             BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(this.sslSocket.getInputStream()));
 
             //TODO read byte[] instead of String
-            byte[] request = bufferedReader.readLine().getBytes();
+            String request = bufferedReader.readLine();
 
             //parseMsg(request);
 
-            String req = new String(request);
-            System.out.println("Received Message: " + req);
+            System.out.println("Received Message: " + request);
 
             sslSocket.close();
 
