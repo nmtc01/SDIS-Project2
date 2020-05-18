@@ -317,21 +317,41 @@ public class Peer extends Node implements PeerInterface{
 
         if( fallsBetween(id,this.getNodeId(),succNode.getNodeId())){
             return succNode;
+        }else{
+            Node newNode = closestPrecedNode(id);
+
+            if(newNode.getNodeId().equals(this.getNodeId()))
+                return this;
+
+            return newNode.requestFindSucc(this.getNodeId(),address, port,id);
         }
 
-        Node newNode = closestPrecedNode(id);
+    }
 
-        if(newNode.getNodeId().equals(this.getNodeId()))
+    public Node findSuccFinger(String address, int port, BigInteger id, int fingerId){
+        //case its the same id return itself
+        if(id.equals(this.getNodeId()))
             return this;
 
+        if( fallsBetween(id,this.getNodeId(),succNode.getNodeId())){
+            return succNode;
+        }else{
+            Node newNode = closestPrecedNode(id);
 
-        return newNode.requestFindSucc(this.getNodeId(),address, port,id);
+            if(newNode.getNodeId().equals(this.getNodeId()))
+                return this;
+
+
+            return newNode.requestFindSuccFinger(this.getNodeId(),address, port,id,fingerId);
+        }
 
     }
 
     public Node findPred(){
         return predNode;
     }
+
+    public void setPred(Node node){predNode=node;}
 
     public Node closestPrecedNode(BigInteger preservedId) {
         for(int i = fingerTable.length - 1; i >= 0; i--  )
@@ -352,7 +372,7 @@ public class Peer extends Node implements PeerInterface{
 
     public void stabilize(){
         //get predecessor
-        Node x = succNode.requestFindPred();
+        Node x = succNode.requestFindPred(this.getNodeId());
 
         //check if X falls between (n,successor)
 
@@ -405,13 +425,14 @@ public class Peer extends Node implements PeerInterface{
     public void fixFingers(){
 
         for (int i = 1; i < fingerTable.length; i++) {
-            fingerTable[i] = requestFindSucc(this.getNodeId(), fingerTable[i].getAddress(),fingerTable[i].getPort(),getFinger(i));
+            requestFindSuccFinger(this.getNodeId(), fingerTable[i].getAddress(),fingerTable[i].getPort(),getFinger(i),i);
 
-           while(fingerTable[i] == null){
-               //todo block - consider handling this in another thread, so that it can process all fingers without locking the node
-           }
         }
 
+    }
+
+    public static void updateFinger(Node node, int fingerId){
+        fingerTable[fingerId] = node;
     }
 
     /**

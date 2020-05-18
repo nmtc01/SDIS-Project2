@@ -80,30 +80,31 @@ public class Node {
     }
 
     //TODO
-    public Node requestFindPred(){
+    public Node requestFindPred(BigInteger msgId){
         //Create socket
-        try {
-            //InetAddress host_name = InetAddress.getByName(address);
-            SSLSocket sslSocket = (SSLSocket) SSLSocketFactory.getDefault().createSocket(this.address, this.port);
 
-            PrintWriter out = new PrintWriter(sslSocket.getOutputStream(), true);
-            BufferedReader in = new BufferedReader(new InputStreamReader(sslSocket.getInputStream()));
+        MessageFactory messageFactory = new MessageFactory();
+        byte[] message = messageFactory.findPredMsg(msgId);
+        Peer.getThreadExecutor().execute(new SendMessagesManager(message, this.address, this.port));
 
-            //TODO check this
-            String request = "FINDPRED " + "\n";
-            out.println(request);
-            String reply = in.readLine();
-
-            //TODO see what to do with reply
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        //TODO missing returns
         return null;
     }
 
-    public Node requestNotify(BigInteger requestId, Node node){
+    public Node requestFindSuccFinger(BigInteger msgId, String ip, int port, BigInteger id, int fingerId) {
+        //Create socket
+        MessageFactory messageFactory = new MessageFactory();
+        byte[] message = messageFactory.findSuccFingerMsg(msgId,ip,port,id,fingerId);
+        Peer.getThreadExecutor().execute(new SendMessagesManager(message, this.address, this.port));
+
+        return null;
+    }
+
+    public Node requestNotify(BigInteger msgId, Node node){
+
+        //Create socket
+        MessageFactory messageFactory = new MessageFactory();
+        byte[] message = messageFactory.notifyMsg(msgId,node.getAddress(),node.getPort());
+        Peer.getThreadExecutor().execute(new SendMessagesManager(message, this.address, this.port));
 
         return null;
     }
