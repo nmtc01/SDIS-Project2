@@ -12,6 +12,25 @@ public class Node {
     private String address;
     private BigInteger id;
 
+    private static byte[] _0 = {97};
+    private static byte[] _1 = {98};
+    private static byte[] _2 = {99};
+    private static byte[] _3 = {100};
+    private static byte[] _4 = {101};
+    private static byte[] _5 = {102};
+    private static byte[] _6 = {103};
+    private static byte[] _7 = {104};
+    private static byte[] _8 = {105};
+    private static byte[] _9 = {106};
+    private static byte[] _10 = {107};
+    private static byte[] _11 = {108};
+    private static byte[] _12 = {109};
+    private static byte[] _13 = {110};
+    private static byte[] _14 = {111};
+    private static byte[] _15 = {112};
+
+    private static byte[][] possibleId = {_0,_1,_2,_3,_4,_5,_6,_7,_8,_9,_10,_11,_12,_13,_14,_15};
+
     public Node(String address, int port) {
         this.port = port;
         this.address = address;
@@ -24,9 +43,27 @@ public class Node {
         }
     }
 
+    //debug
+    public Node(int order, String address, int port) {
+
+        this.port = port;
+        this.address = address;
+        this.id = new BigInteger(possibleId[order]);
+
+    }
+
+    public Node(BigInteger id, String address, int port) {
+
+        this.port = port;
+        this.address = address;
+        this.id = id;
+
+    }
+
     public BigInteger getNodeId() {
         return id;
     }
+
     public String getAddress(){return this.address; }
     public int getPort(){return port; }
 
@@ -48,10 +85,6 @@ public class Node {
         try {
             //InetAddress host_name = InetAddress.getByName(address);
             SSLSocket sslSocket = (SSLSocket) SSLSocketFactory.getDefault().createSocket(this.address, this.port);
-
-            /*if (cypher_suite.length > 0) {
-                sslSocket.setEnabledCipherSuites(cypher_suite);
-            }*/
 
             PrintWriter out = new PrintWriter(sslSocket.getOutputStream(), true);
             BufferedReader in = new BufferedReader(new InputStreamReader(sslSocket.getInputStream()));
@@ -75,10 +108,13 @@ public class Node {
         return null;
     }
 
-    public boolean testResponse(BigInteger id){
+    public boolean testResponse(BigInteger id, String ip, int port){
 
-        //test during a certain time to communicate with the predecessor, if it succeeds return false if it fails return true;
-        //function to test connection has failed on peer
+        //Create socket
+        MessageFactory messageFactory = new MessageFactory();
+        byte[] message = messageFactory.testMsg(this.id,ip,port);
+        Peer.getThreadExecutor().execute(new SendMessagesManager(message, this.address, this.port));
+
         return true;
     }
 

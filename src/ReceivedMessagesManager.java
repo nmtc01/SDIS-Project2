@@ -87,7 +87,20 @@ public class ReceivedMessagesManager implements Runnable {
                 case "SUCC": {
                     BigInteger msgId = new BigInteger(header[1]);
                     BigInteger succId = new BigInteger(header[2]);
-                    manageSucc(msgId,succId);
+                    String succAddress = header[3];
+                    int succPort = Integer.parseInt(header[4]);
+                    manageSucc(msgId,succId,succAddress,succPort);
+                    break;
+                }
+                case "TEST":{
+                    BigInteger msgId = new BigInteger(header[1]);
+                    String succAddress = header[2];
+                    int succPort = Integer.parseInt(header[3]);
+                    manageTest(msgId,succAddress,succPort);
+                    break;
+                } case "REPTEST":{
+                    BigInteger msgId = new BigInteger(header[1]);
+                    manageReplyTest(msgId);
                     break;
                 }
                 default:
@@ -173,18 +186,29 @@ public class ReceivedMessagesManager implements Runnable {
         Peer.getThreadExecutor().execute(receivedFindSucc);
     }
 
-    private void manageSucc(BigInteger msgId, BigInteger succId) {
+    private void manageSucc(BigInteger msgId, BigInteger succId, String succAddress, int succPort) {
 
-        System.out.printf("Received message: SUCC " + msgId+" "+succId);
+        System.out.printf("Received message: SUCC " + msgId+" "+succId + " "+succAddress+" "+succPort);
 
-        //todo
-
-        /* SAMPLE
-        //todo received find succ -  be careful how this is done because of the find fingers successor
-        ReceivedFindSucc receivedFindSucc = new ReceivedFindSucc(msgId, address, port, id);
-        Peer.getThreadExecutor().execute(receivedFindSucc);
-        */
+        ReceivedSucc receivedSucc = new ReceivedSucc(msgId,succId, succAddress, succPort);
+        Peer.getThreadExecutor().execute(receivedSucc);
 
     }
+
+    private void manageTest(BigInteger msgId, String address, int port) {
+
+        System.out.printf("Received message: TEST " + msgId+" "+address+" "+ port);
+
+        ReceivedTest receivedTest = new ReceivedTest(address, port);
+        Peer.getThreadExecutor().execute(receivedTest);
+    }
+
+    private void manageReplyTest(BigInteger msgId) {
+
+        System.out.printf("Received message: REPTEST " + msgId);
+
+
+    }
+
 
 }

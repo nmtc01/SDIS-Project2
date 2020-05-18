@@ -3,14 +3,21 @@ import java.math.BigInteger;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.Random;
 import java.util.Set;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.ReentrantLock;
 
 public class Peer extends Node implements PeerInterface{
+
+    //testing chord
+    private static int m = 4; //256
+
     //Args
     private static Peer peer;
     private static Storage storage;
@@ -19,10 +26,13 @@ public class Peer extends Node implements PeerInterface{
     private static int port;
     private static String initIpAddress;
     private static int initPort;
-    private static Node[] fingerTable = new Node[256];
+    private static Node[] fingerTable = new Node[m];
     private static ScheduledThreadPoolExecutor threadExecutor; //TODO use this instead of thread
     private static Node predNode;
     private static Node succNode;
+
+    //lock joinning thread
+    public static final CountDownLatch latch = new CountDownLatch(1);
 
     public Peer(String ipAddress, int port) {
 
@@ -32,13 +42,13 @@ public class Peer extends Node implements PeerInterface{
 
         System.out.println("Created with Id: "+this.getNodeId());
 
-        for (int i = 0; i < fingerTable.length; i++)
-            fingerTable[i] = this;
+        Arrays.fill(fingerTable, this);
 
         System.out.println("Init Peer - "+this.getAddress()+":"+this.getPort());
 
-        //Todo uncomment this after checking that join works
-        // threadExecutor.scheduleAtFixedRate( new ChordManager(this), 30, 30, TimeUnit.SECONDS);
+        this.printFingerTable();
+
+        threadExecutor.scheduleAtFixedRate( new ChordManager(this), 5, 5, TimeUnit.SECONDS);
     }
 
     public Peer(String ipAddress, int port, String initAddress, int initPort) {
@@ -52,10 +62,50 @@ public class Peer extends Node implements PeerInterface{
 
         this.join(new Node(initAddress, initPort));
 
-        //Todo uncomment this after checking that join works
-        // threadExecutor.scheduleAtFixedRate( new ChordManager(this), 30, 30, TimeUnit.SECONDS);
+        this.printFingerTable();
+
+        threadExecutor.scheduleAtFixedRate( new ChordManager(this), 5, 5, TimeUnit.SECONDS);
     }
 
+    //testing funtions
+    public Peer(int order, String ipAddress, int port) {
+
+        //create a new chord ring
+        super(order, ipAddress, port);
+        succNode = this;
+
+        System.out.println("Created with Id: "+this.getNodeId());
+
+        Arrays.fill(fingerTable, this);
+
+        System.out.println("Init Peer - "+this.getAddress()+":"+this.getPort());
+
+        this.printFingerTable();
+
+        threadExecutor.scheduleAtFixedRate( new ChordManager(this), 5, 5, TimeUnit.SECONDS);
+    }
+
+    public Peer(int order, String ipAddress, int port, String initAddress, int initPort) {
+
+        super(order, ipAddress, port);
+        succNode = this;
+
+        System.out.println("Created with Id: "+this.getNodeId());
+
+        System.out.println("Peer - "+this.getAddress()+":"+this.getPort());
+
+        this.join(new Node(initAddress, initPort));
+
+        this.printFingerTable();
+
+         threadExecutor.scheduleAtFixedRate( new ChordManager(this), 5, 5, TimeUnit.SECONDS);
+    }
+
+    public static void setSuccNode(Node sn){
+        succNode = sn;
+        System.out.println("\n Setup Succ "+sn.getNodeId() );
+        latch.countDown();
+    }
 
     public static void main(String args[]) {
 
@@ -69,11 +119,21 @@ public class Peer extends Node implements PeerInterface{
         threadExecutor.execute(new SSLConnection(ipAddress,port));
 
         //Create initiator peer
+
+/*
         if (args.length == 5) {
             peer = new Peer(ipAddress, port, initIpAddress, initPort);
         }
         else {
             peer = new Peer(ipAddress, port);
+        }
+*/
+
+       if (args.length == 6) {  // change to 6
+            peer = new Peer(Integer.parseInt(args[5]),ipAddress, port, initIpAddress, initPort);
+        }
+        else {
+            peer = new Peer(Integer.parseInt(args[3]),ipAddress, port);
         }
 
         System.out.println("Started peer");
@@ -92,7 +152,7 @@ public class Peer extends Node implements PeerInterface{
 
     public static boolean parseArgs(String[] args) {
         //Check the number of arguments given
-        if (args.length != 3 && args.length != 5) {
+        if (args.length != 4 && args.length != 6) { //change to 3 - 5
             System.out.println("Usage: java Peer access_point addressInit portInit [address port]");
             return false;
         }
@@ -104,7 +164,7 @@ public class Peer extends Node implements PeerInterface{
         //Parse port
         port = Integer.parseInt(args[2]);
         //Parse init
-        if (args.length == 5) {
+        if (args.length == 6) { //change to 5
             initIpAddress = args[3];
             initPort = Integer.parseInt(args[4]);
         }
@@ -197,7 +257,7 @@ public class Peer extends Node implements PeerInterface{
     ////////  CHORD JOINING SECTION  ////////
     /////////////////////////////////////////
 
-    /**
+    /**¢
      * JOIN - join chord using ring containing node n'
      */
     public void join(Node initNode) {
@@ -205,9 +265,16 @@ public class Peer extends Node implements PeerInterface{
         succNode = initNode.requestFindSucc(this.getNodeId(), this.getAddress(),this.getPort(), this.getNodeId());
 
         //open thread to wait for the response
-        while (succNode == null) {
-            //block this process until a successor is found
+
+        System.out.println("JOIN - locking...");
+        try {
+            latch.await();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
         }
+        System.out.println(succNode.getNodeId());
+
+        System.out.println("JOIN - joined");
 
         predNode = succNode;
 
@@ -217,11 +284,18 @@ public class Peer extends Node implements PeerInterface{
             else
                 fingerTable[i] = this;
         }
+
     }
 
     //todo check if this is right
     public boolean fallsBetween(BigInteger id, BigInteger n, BigInteger succ){
 
+        if (n.compareTo(succ) > 0)
+            return (id.compareTo(n) >= 0) || (id.compareTo(succ) <= 0);
+
+        return (id.compareTo(n) >= 0) && (id.compareTo(succ) <= 0);
+
+        /*
         //if n major than succ cannot be compared
         if(n.compareTo(succ) < 0)
             return false;
@@ -229,10 +303,11 @@ public class Peer extends Node implements PeerInterface{
             return true;
         else
             return false;
+            */
+
     }
 
     public Node findSucc( String address, int port, BigInteger id){
-        System.out.println("PEDIRE");
         //case its the same id return itself
         if(id.equals(this.getNodeId()))
             return this;
@@ -256,8 +331,8 @@ public class Peer extends Node implements PeerInterface{
     }
 
     public Node closestPrecedNode(BigInteger preservedId) {
-        for(int i = 256 - 1; i >= 0; i--  )
-            if(fallsBetween(fingerTable[i].getNodeId(),this.getNodeId(),preservedId))
+        for(int i = fingerTable.length - 1; i >= 0; i--  )
+            if(fingerTable[i] != null && fallsBetween(fingerTable[i].getNodeId(),this.getNodeId(),preservedId))
                 return fingerTable[i];
         return this;
     }
@@ -346,20 +421,20 @@ public class Peer extends Node implements PeerInterface{
         if(predecessor has failed)
             predecessor = nil
          */
-        if (predNode!= null && predNode.testResponse(this.getNodeId()))
-            predNode = null;
 
-    }
+        predNode.testResponse(this.getNodeId(),this.getAddress(),this.getPort());
 
-    //used to check if precedecessor fails giving response
-    public boolean hasFailed(){
-        return false;
+        //TODO this should be waithing for the reponse during a certain amount of time, it doesnt timeout
+        //if timeout
+        //predNode = null;
+
+
     }
 
     public BigInteger getFinger(int i){
         // (n + 2^k-1)mod 2^m
         //n - this node, m - finger length
-        return  (this.getNodeId().add(new BigInteger("2").pow(i))).mod(new BigInteger("2").pow(256));
+        return  (this.getNodeId().add(new BigInteger("2").pow(i))).mod(new BigInteger("2").pow(fingerTable.length));
     }
 
     /////////////////////////////////////////
@@ -596,5 +671,14 @@ public class Peer extends Node implements PeerInterface{
         //TODO communication TCP
 
         return "Debug successfull";
+    }
+
+    public void printFingerTable(){
+
+        System.out.println("\nPrinting Finger Table...");
+        for(int i=0; i < fingerTable.length; i++){
+            System.out.println(" - F["+i+"] - " +fingerTable[i].getNodeId());
+        }
+        System.out.println(" ");
     }
 }
