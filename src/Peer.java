@@ -387,9 +387,9 @@ public class Peer extends Node implements PeerInterface{
             byte msg[] = messageFactory.putChunkMsg(chunk, replication_degree);
 
             for (int i = 0; i < chunk.getDesired_replication_degree(); i++) {
-                //TODO findSucc
-                //Node destNode = this.findSucc();
-                threadExecutor.execute(new SendMessagesManager(msg));//, destNode.getAddress(), destNode.getPort()));
+                //TODO check this
+                Node destNode = fingerTable[i];
+                threadExecutor.execute(new SendMessagesManager(msg, destNode.getAddress(), destNode.getPort()));
 
                 try {
                     Thread.sleep(500);
