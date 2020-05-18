@@ -23,18 +23,17 @@ public class SSLConnection implements Runnable {
         //Create socket
         //TODO check this
         try {
-            //InetAddress host_name = InetAddress.getByName(this.ipAddress);
             SSLSocket sslSocket = (SSLSocket) SSLSocketFactory.getDefault().createSocket(this.ipAddress, this.port);
 
             dos = new DataOutputStream(sslSocket.getOutputStream());
-            // BufferedReader in = new BufferedReader(new InputStreamReader(sslSocket.getInputStream()));
-            System.out.println("Sending message: "+ new String(msg, StandardCharsets.UTF_8) + " to "+this.ipAddress+":"+this.port);
+
+            System.out.println("##################################");
+            System.out.println("##       Sending message:       ##");
+            System.out.println("##################################");
+            System.out.println((new String(msg, StandardCharsets.UTF_8)).trim() + " to "+this.ipAddress+":"+this.port);
 
             dos.write(msg);
             dos.flush();
-
-            //String reply = in.readLine();
-
             sslSocket.close();
 
         } catch (IOException e) {
@@ -55,7 +54,6 @@ public class SSLConnection implements Runnable {
             while (true) {
 
                 SSLSocket clientSocket = (SSLSocket) serverSocket.accept();
-
                 Peer.getThreadExecutor().execute(new ReceivedMessagesManager(clientSocket));
             }
 

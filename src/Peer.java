@@ -47,7 +47,6 @@ public class Peer extends Node implements PeerInterface{
         succNode = this;
 
         System.out.println("Created with Id: "+this.getNodeId());
-
         System.out.println("Peer - "+this.getAddress()+":"+this.getPort());
 
         this.join(new Node(initAddress, initPort));
@@ -59,7 +58,10 @@ public class Peer extends Node implements PeerInterface{
 
     public static void main(String args[]) {
 
-        System.out.println("Starting Peer Protocol");
+        System.out.println("##################################");
+        System.out.println("##    Starting Peer Protocol    ##");
+        System.out.println("##################################");
+
         //Parse args
         if (!parseArgs(args))
             return;
@@ -69,12 +71,9 @@ public class Peer extends Node implements PeerInterface{
         threadExecutor.execute(new SSLConnection(ipAddress,port));
 
         //Create initiator peer
-        if (args.length == 5) {
+        if (args.length == 5)
             peer = new Peer(ipAddress, port, initIpAddress, initPort);
-        }
-        else {
-            peer = new Peer(ipAddress, port);
-        }
+        else peer = new Peer(ipAddress, port);
 
         System.out.println("Started peer");
 
@@ -232,7 +231,6 @@ public class Peer extends Node implements PeerInterface{
     }
 
     public Node findSucc( String address, int port, BigInteger id){
-        System.out.println("PEDIRE");
         //case its the same id return itself
         if(id.equals(this.getNodeId()))
             return this;
