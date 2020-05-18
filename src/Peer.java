@@ -58,6 +58,8 @@ public class Peer extends Node implements PeerInterface{
 
         System.out.println("Created with Id: "+this.getNodeId());
 
+        Arrays.fill(fingerTable, this);
+
         System.out.println("Peer - "+this.getAddress()+":"+this.getPort());
 
         this.join(new Node(initAddress, initPort));
@@ -92,6 +94,8 @@ public class Peer extends Node implements PeerInterface{
 
         System.out.println("Created with Id: "+this.getNodeId());
 
+        Arrays.fill(fingerTable, this);
+
         System.out.println("Peer - "+this.getAddress()+":"+this.getPort());
 
         this.join(new Node(initAddress, initPort));
@@ -119,7 +123,6 @@ public class Peer extends Node implements PeerInterface{
         threadExecutor.execute(new SSLConnection(ipAddress,port));
 
         //Create initiator peer
-
 /*
         if (args.length == 5) {
             peer = new Peer(ipAddress, port, initIpAddress, initPort);
@@ -272,9 +275,7 @@ public class Peer extends Node implements PeerInterface{
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-        System.out.println(succNode.getNodeId());
-
-        System.out.println("JOIN - joined");
+        System.out.println("JOIN - joined - SUCC - "+succNode.getNodeId());
 
         predNode = succNode;
 
@@ -307,7 +308,7 @@ public class Peer extends Node implements PeerInterface{
 
     }
 
-    public Node findSucc( String address, int port, BigInteger id){
+    public Node findSucc(String address, int port, BigInteger id){
         //case its the same id return itself
         if(id.equals(this.getNodeId()))
             return this;
@@ -344,7 +345,7 @@ public class Peer extends Node implements PeerInterface{
 
     }
 
-    public Node findPred(){
+    public static Node findPred(){
         return predNode;
     }
 
@@ -369,7 +370,7 @@ public class Peer extends Node implements PeerInterface{
 
     public void stabilize(){
         //get predecessor
-        Node x = succNode.requestFindPred(this.getNodeId());
+        Node x = succNode.requestFindPred(this.getNodeId(),this.getAddress(),this.getPort());
 
         //check if X falls between (n,successor)
 
@@ -456,6 +457,7 @@ public class Peer extends Node implements PeerInterface{
         // (n + 2^k-1)mod 2^m
         //n - this node, m - finger length
         return  (this.getNodeId().add(new BigInteger("2").pow(i))).mod(new BigInteger("2").pow(fingerTable.length));
+        //return ((this.getNodeId().add(new BigInteger("2").pow(i))).mod(new BigInteger("2").pow(fingerTable.length)));
     }
 
     /////////////////////////////////////////

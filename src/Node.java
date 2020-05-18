@@ -48,7 +48,7 @@ public class Node {
 
         this.port = port;
         this.address = address;
-        this.id = new BigInteger(possibleId[order]);
+        this.id = new BigInteger(String.valueOf(order));
 
     }
 
@@ -79,8 +79,7 @@ public class Node {
         return null;
     }
 
-    //TODO
-    public Node requestFindPred(BigInteger msgId){
+    public Node requestFindPred(BigInteger msgId, String Address, int port){
         //Create socket
 
         MessageFactory messageFactory = new MessageFactory();

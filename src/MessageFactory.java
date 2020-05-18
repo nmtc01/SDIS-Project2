@@ -198,4 +198,17 @@ public class MessageFactory {
 
         return replyTest;
     }
+
+    //FINDPRED <SenderId>
+    public byte[] predMsg(BigInteger msgId,BigInteger predId, String predAddress, int predPort) {
+
+        this.messageString = "DPRED " + msgId+" "+predId+" "+predAddress+" "+predPort+ " \r\n\r\n";
+
+        String request = this.messageString;
+        byte[] header = request.getBytes();
+        byte[] replyTest = new byte[header.length];
+        System.arraycopy(header,0,replyTest,0,header.length);
+
+        return replyTest;
+    }
 }
