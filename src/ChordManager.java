@@ -10,7 +10,7 @@ public class ChordManager implements Runnable {
     public void run() {
 
         //peer.stabilize();
-        peer.fixFingers();
+        //peer.fixFingers();
         //peer.checkPred();
 
         //peer.printFingerTable();

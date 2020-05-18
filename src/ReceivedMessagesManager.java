@@ -130,7 +130,9 @@ public class ReceivedMessagesManager implements Runnable {
                 }
                 case "FINDPRED":{
                     BigInteger msgId = new BigInteger(header[1]);
-                    manageFindPred(msgId);
+                    String address = header[2];
+                    int port = Integer.parseInt(header[3]);
+                    manageFindPred(msgId,address,port);
                     break;
                 }
                 default:
@@ -210,14 +212,16 @@ public class ReceivedMessagesManager implements Runnable {
     /////////////////////
 
     private void manageFindSucc(BigInteger msgId, String address, int port, BigInteger id) {
-        System.out.println("FINDSUCC " + msgId+" "+address+" "+ port + " "+id);
+
+        System.out.println("Received message: FINDSUCC " + msgId+" "+address+" "+ port + " "+id+'\n');
+
         ReceivedFindSucc receivedFindSucc = new ReceivedFindSucc(address, port, id);
         Peer.getThreadExecutor().execute(receivedFindSucc);
     }
 
     private void manageSucc(BigInteger msgId, BigInteger succId, String succAddress, int succPort) {
 
-        System.out.printf("Received message: SUCC " + msgId+" "+succId + " "+succAddress+" "+succPort+'\n');
+        System.out.println("Received message: SUCC " + msgId+" "+succId + " "+succAddress+" "+succPort);
 
         ReceivedSucc receivedSucc = new ReceivedSucc(msgId,succId, succAddress, succPort);
         Peer.getThreadExecutor().execute(receivedSucc);
@@ -226,7 +230,7 @@ public class ReceivedMessagesManager implements Runnable {
 
     private void manageFindSuccFinger(BigInteger msgId, String address, int port, BigInteger id, int fingerId) {
 
-        System.out.printf("Received message: FINDSUCCFINGER " + msgId+" "+address + " "+port+" "+id+" "+fingerId);
+        System.out.println("Received message: FINDSUCCFINGER " + msgId+" "+address + " "+port+" "+id+" "+fingerId);
 
         ReceivedFindFingerSucc receivedFindFingerSucc = new ReceivedFindFingerSucc(address, port,fingerId,id);
         Peer.getThreadExecutor().execute(receivedFindFingerSucc);
@@ -236,7 +240,7 @@ public class ReceivedMessagesManager implements Runnable {
 
 
     private void manageSuccFinger(BigInteger msgId, BigInteger succId, String succAddress, int succPort, int fingerId) {
-        System.out.printf("Received message: FINGERSUCC " + msgId+" "+succId + " "+succAddress+" "+succPort+" "+fingerId);
+        System.out.println("Received message: FINGERSUCC " + msgId+" "+succId + " "+succAddress+" "+succPort+" "+fingerId);
 
         ReceivedFingerSucc receivedFingerSucc = new ReceivedFingerSucc(msgId,succId, succAddress, succPort,fingerId);
         Peer.getThreadExecutor().execute(receivedFingerSucc);
@@ -244,7 +248,7 @@ public class ReceivedMessagesManager implements Runnable {
 
 
     private void manageNofity(BigInteger msgId, String address, int port) {
-        System.out.printf("Received message: NOTIFY " + msgId+" "+address+" "+ port);
+        System.out.println("Received message: NOTIFY " + msgId+" "+address+" "+ port);
 
         ReceivedNotify receivedNotify = new ReceivedNotify(address,port);
         Peer.getThreadExecutor().execute(receivedNotify);
@@ -252,7 +256,7 @@ public class ReceivedMessagesManager implements Runnable {
 
     private void manageTest(BigInteger msgId, String address, int port) {
 
-        System.out.printf("Received message: TEST " + msgId+" "+address+" "+ port);
+        System.out.println("Received message: TEST " + msgId+" "+address+" "+ port);
 
         ReceivedTest receivedTest = new ReceivedTest(address, port);
         Peer.getThreadExecutor().execute(receivedTest);
@@ -260,13 +264,16 @@ public class ReceivedMessagesManager implements Runnable {
 
     private void manageReplyTest(BigInteger msgId) {
 
-        System.out.printf("Received message: REPTEST " + msgId);
+        System.out.println("Received message: REPTEST " + msgId);
 
 
     }
 
-    private void manageFindPred(BigInteger msgId) {
-        //todo
+    private void manageFindPred(BigInteger msgId,String address, int port ) {
+        System.out.println("Received message: FINDPRED " + msgId);
+
+        ReceivedFindPred receivedFindPred = new ReceivedFindPred(msgId,address,port);
+        Peer.getThreadExecutor().execute(receivedFindPred);
     }
 
 
