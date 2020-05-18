@@ -308,15 +308,19 @@ public class Peer extends Node implements PeerInterface{
             return true;
         else
             return false;
-            */
+        */
 
     }
 
     public Node findSucc(String address, int port, BigInteger id){
         //case its the same id return itself
-        if(id.equals(this.getNodeId()))
-            return this;
-
+/* TODO
+        if(succNode.getNodeId().equals(this.getNodeId())){
+            if(!msgId.equals(this.getNodeId()))
+                //update
+                return this;
+        }
+*/
         if( fallsBetween(id,this.getNodeId(),succNode.getNodeId())){
             return succNode;
         }else{
