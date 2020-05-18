@@ -92,6 +92,31 @@ public class ReceivedMessagesManager implements Runnable {
                     manageSucc(msgId,succId,succAddress,succPort);
                     break;
                 }
+                case "FINDSUCCFINGER": {
+                    BigInteger msgId = new BigInteger(header[1]);
+                    String address = header[2];
+                    int port = Integer.parseInt(header[3]);
+                    BigInteger id = new BigInteger(header[4]);
+                    int fingerId = Integer.parseInt(header[5]);
+                    manageFindSuccFinger(msgId, address, port,id,fingerId);
+                    break;
+                }
+                case "FINGERSUCC": {
+                    BigInteger msgId = new BigInteger(header[1]);
+                    BigInteger succId = new BigInteger(header[2]);
+                    String succAddress = header[3];
+                    int succPort = Integer.parseInt(header[4]);
+                    int fingerId = Integer.parseInt(header[5]);
+                    manageSuccFinger(msgId,succId,succAddress,succPort,fingerId);
+                    break;
+                }
+                case "NOTIFY":{
+                    BigInteger msgId = new BigInteger(header[1]);
+                    String address = header[2];
+                    int port = Integer.parseInt(header[3]);
+                    manageNofity(msgId,address,port);
+                    break;
+                }
                 case "TEST":{
                     BigInteger msgId = new BigInteger(header[1]);
                     String succAddress = header[2];
@@ -101,6 +126,11 @@ public class ReceivedMessagesManager implements Runnable {
                 } case "REPTEST":{
                     BigInteger msgId = new BigInteger(header[1]);
                     manageReplyTest(msgId);
+                    break;
+                }
+                case "FINDPRED":{
+                    BigInteger msgId = new BigInteger(header[1]);
+                    manageFindPred(msgId);
                     break;
                 }
                 default:
@@ -195,6 +225,32 @@ public class ReceivedMessagesManager implements Runnable {
 
     }
 
+    private void manageFindSuccFinger(BigInteger msgId, String address, int port, BigInteger id, int fingerId) {
+
+        System.out.printf("Received message: FINDSUCCFINGER " + msgId+" "+address + " "+port+" "+id+" "+fingerId);
+
+        ReceivedFindFingerSucc receivedFindFingerSucc = new ReceivedFindFingerSucc(address, port,fingerId,id);
+        Peer.getThreadExecutor().execute(receivedFindFingerSucc);
+
+
+    }
+
+
+    private void manageSuccFinger(BigInteger msgId, BigInteger succId, String succAddress, int succPort, int fingerId) {
+        System.out.printf("Received message: FINGERSUCC " + msgId+" "+succId + " "+succAddress+" "+succPort+" "+fingerId);
+
+        ReceivedFingerSucc receivedFingerSucc = new ReceivedFingerSucc(msgId,succId, succAddress, succPort,fingerId);
+        Peer.getThreadExecutor().execute(receivedFingerSucc);
+    }
+
+
+    private void manageNofity(BigInteger msgId, String address, int port) {
+        System.out.printf("Received message: NOTIFY " + msgId+" "+address+" "+ port);
+
+        ReceivedNotify receivedNotify = new ReceivedNotify(address,port);
+        Peer.getThreadExecutor().execute(receivedNotify);
+    }
+
     private void manageTest(BigInteger msgId, String address, int port) {
 
         System.out.printf("Received message: TEST " + msgId+" "+address+" "+ port);
@@ -209,6 +265,11 @@ public class ReceivedMessagesManager implements Runnable {
 
 
     }
+
+    private void manageFindPred(BigInteger msgId) {
+        //todo
+    }
+
 
 
 }
