@@ -22,13 +22,12 @@ public class ReceivedFindSucc implements Runnable {
         if (node != null) {
 
             MessageFactory messageFactory = new MessageFactory();
-            byte[] message = messageFactory.replySuccMsg(node.getNodeId(),this.id);
+            byte[] message = messageFactory.replySuccMsg(Peer.getPeer().getNodeId(),node.getNodeId(),node.getAddress(),node.getPort());
 
             SendMessagesManager sendMessagesManager = new SendMessagesManager(message, this.address, this.port);
 
             Peer.getThreadExecutor().execute(sendMessagesManager);
         }
-
 
     }
 }

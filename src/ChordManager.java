@@ -9,8 +9,8 @@ public class ChordManager implements Runnable {
     @Override
     public void run() {
 
-        peer.stabilize();
-        peer.fixFingers();
+        //peer.stabilize();
+        //peer.fixFingers();
         peer.checkPred();
 
     }
