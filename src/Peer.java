@@ -409,8 +409,10 @@ public class Peer extends Node implements PeerInterface{
     public synchronized String restore(String file) {
         boolean file_exists = false;
         Storage peerStorage = this.storage;
+
         for (int i = 0; i < peerStorage.getStoredFiles().size(); i++) {
             FileInfo fileInfo;
+
             if (peerStorage.getStoredFiles().get(i).getFile().getName().equals(file)) {
                 file_exists = true;
                 //Get previously backed up file
@@ -418,6 +420,7 @@ public class Peer extends Node implements PeerInterface{
                 //Get file chunks
                 Set<Chunk> chunks = peerStorage.getStoredFiles().get(i).getChunks();
                 Iterator<Chunk> chunkIterator = chunks.iterator();
+
                 //For each chunk
                 while(chunkIterator.hasNext()){
                     Chunk chunk = chunkIterator.next();
@@ -426,14 +429,16 @@ public class Peer extends Node implements PeerInterface{
                     byte[] msg = messageFactory.getChunkMsg(fileInfo.getFileId(), chunk.getChunk_no());
                     String messageString = messageFactory.getMessageString();
 
+                    // TODO Select destination peer
                     //Send message
-                    new Thread(new SendMessagesManager(msg)).start();
+                    Peer.getThreadExecutor().execute(new SendMessagesManager(msg));
+
                     System.out.printf("Sent message: %s\n", messageString);
                 }
 
                 while(fileInfo.getChunks().size() != storage.getRestoreChunks().size()) {}
 
-                new Thread(new RestoreChunks(file)).start();
+                Peer.getThreadExecutor().execute(new RestoreChunks(file));
                 break;
             }
         }
@@ -454,19 +459,27 @@ public class Peer extends Node implements PeerInterface{
                 //Get previously backed up file
                 fileInfo = storage.getStoredFiles().get(i);
                 storage.getDeletedFiles().add(fileInfo);
+
                 //Get file chunks
                 Set<Chunk> chunks = fileInfo.getChunks();
                 Iterator<Chunk> chunkIterator = chunks.iterator();
+                MessageFactory messageFactory = new MessageFactory();
+
                 //For each chunk
                 while (chunkIterator.hasNext()) {
                     Chunk chunk = chunkIterator.next();
+
                     //Prepare message to send
-                    MessageFactory messageFactory = new MessageFactory();
                     byte msg[] = messageFactory.deleteMsg(chunk);
-                    //Send message
-                    new Thread(new SendMessagesManager(msg)).start();
-                    String messageString = messageFactory.getMessageString();
-                    System.out.printf("Sent message: %s\n", messageString);
+
+                    for (int j = 0; j < chunk.getDesired_replication_degree(); j++) {
+                        Node destNode = fingerTable[j];
+
+                        //Send message
+                        Peer.getThreadExecutor().execute(new SendMessagesManager(msg, destNode.getAddress(), destNode.getPort()));
+                        String messageString = messageFactory.getMessageString();
+                        System.out.printf("Sent message: %s to %s:%s\n", messageString, destNode.getAddress(), destNode.getPort());
+                    }
                 }
                 //Delete file
                 storage.deleteFile(fileInfo);
@@ -491,17 +504,23 @@ public class Peer extends Node implements PeerInterface{
         if (tmpSpace > 0) {
             double deletedSpace = 0;
             Iterator<Chunk> chunkIterator = storage.getStoredChunks().iterator();
+            MessageFactory messageFactory = new MessageFactory();
 
             while (chunkIterator.hasNext()) {
                 Chunk chunk = chunkIterator.next();
                 if (deletedSpace < tmpSpace || max_space == 0) {
                     deletedSpace += chunk.getChunk_size();
 
-                    MessageFactory messageFactory = new MessageFactory();
                     byte msg[] = messageFactory.reclaimMsg(chunk);
-                    new Thread(new SendMessagesManager(msg)).start();
-                    String messageString = messageFactory.getMessageString();
-                    System.out.printf("Sent message: %s\n", messageString);
+
+                    for (int j = 0; j < chunk.getDesired_replication_degree(); j++) {
+                        Node destNode = fingerTable[j];
+
+                        //Send message
+                        Peer.getThreadExecutor().execute(new SendMessagesManager(msg, destNode.getAddress(), destNode.getPort()));
+                        String messageString = messageFactory.getMessageString();
+                        System.out.printf("Sent message: %s to %s:%s\n", messageString, destNode.getAddress(), destNode.getPort());
+                    }
 
                     String filepath = storage.getDirectory().getPath() + "/file" + chunk.getFile_id() + "/chunk" + chunk.getChunk_no();
                     File file = new File(filepath);
@@ -509,6 +528,7 @@ public class Peer extends Node implements PeerInterface{
                     String chunkKey = chunk.getFile_id() + "-" + chunk.getChunk_no();
                     storage.decrementChunkOccurences(chunkKey);
 
+                    // TODO: Select destination peer
                     if (this.storage.getChunkCurrentDegree(chunkKey) < chunk.getDesired_replication_degree()) {
                         byte msg2[] = messageFactory.putChunkMsg(chunk, chunk.getDesired_replication_degree());
                         Random random = new Random();
