@@ -3,6 +3,7 @@ import java.math.BigInteger;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Random;
 import java.util.Set;
@@ -427,15 +428,19 @@ public class Peer extends Node implements PeerInterface{
                     //Prepare message to send
                     MessageFactory messageFactory = new MessageFactory();
                     byte[] msg = messageFactory.getChunkMsg(fileInfo.getFileId(), chunk.getChunk_no());
-                    String messageString = messageFactory.getMessageString();
 
-                    // TODO Select destination peer
-                    //Send message
-                    Peer.getThreadExecutor().execute(new SendMessagesManager(msg));
+                    // TODO Select destination peer, use random index instead of 0? - Check
+                    String chunkKey = fileInfo.getFileId()+'-'+chunk.getChunk_no();
+                    if (getStorage().getPeers_with_chunks().containsKey(chunkKey)) {
+                        Peer destPeer = getStorage().getPeers_with_chunks().get(chunkKey).get(0);
 
-                    System.out.printf("Sent message: %s\n", messageString);
+                        //Send message
+                        Peer.getThreadExecutor().execute(new SendMessagesManager(msg, destPeer.getAddress(), destPeer.getPort()));
+                    }
+                    else return "Chunk was not backed up previously";
                 }
 
+                //TODO check - blocks here
                 while(fileInfo.getChunks().size() != storage.getRestoreChunks().size()) {}
 
                 Peer.getThreadExecutor().execute(new RestoreChunks(file));
@@ -477,8 +482,6 @@ public class Peer extends Node implements PeerInterface{
 
                         //Send message
                         Peer.getThreadExecutor().execute(new SendMessagesManager(msg, destNode.getAddress(), destNode.getPort()));
-                        String messageString = messageFactory.getMessageString();
-                        System.out.printf("Sent message: %s to %s:%s\n", messageString, destNode.getAddress(), destNode.getPort());
                     }
                 }
                 //Delete file
@@ -518,8 +521,6 @@ public class Peer extends Node implements PeerInterface{
 
                         //Send message
                         Peer.getThreadExecutor().execute(new SendMessagesManager(msg, destNode.getAddress(), destNode.getPort()));
-                        String messageString = messageFactory.getMessageString();
-                        System.out.printf("Sent message: %s to %s:%s\n", messageString, destNode.getAddress(), destNode.getPort());
                     }
 
                     String filepath = storage.getDirectory().getPath() + "/file" + chunk.getFile_id() + "/chunk" + chunk.getChunk_no();
@@ -534,8 +535,6 @@ public class Peer extends Node implements PeerInterface{
                         Random random = new Random();
                         int random_value = random.nextInt(401);
                         Peer.getThreadExecutor().schedule(new SendMessagesManager(msg2), random_value, TimeUnit.MILLISECONDS);
-                        String messageString2 = messageFactory.getMessageString();
-                        System.out.printf("Sent message: %s\n", messageString2);
                     }
                     chunkIterator.remove();
                 }
