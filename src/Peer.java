@@ -230,7 +230,7 @@ public class Peer extends Node implements PeerInterface{
             return false;
     }
 
-    public Node findSucc( String address, int port, BigInteger id){
+    public Node findSucc(String address, int port, BigInteger id){
         //case its the same id return itself
         if(id.equals(this.getNodeId()))
             return this;
@@ -385,18 +385,21 @@ public class Peer extends Node implements PeerInterface{
         while(chunkIterator.hasNext()) {
             Chunk chunk = chunkIterator.next();
             byte msg[] = messageFactory.putChunkMsg(chunk, replication_degree);
-            new Thread(new SendMessagesManager(msg)).start();
-            String messageString = messageFactory.getMessageString();
-            System.out.printf("Sent message: %s\n", messageString);
-            try {
-                Thread.sleep(500);
+
+            for (int i = 0; i < chunk.getDesired_replication_degree(); i++) {
+                //TODO findSucc
+                //Node destNode = this.findSucc();
+                threadExecutor.execute(new SendMessagesManager(msg));//, destNode.getAddress(), destNode.getPort()));
+
+                try {
+                    Thread.sleep(500);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+                String chunkKey = chunk.getFile_id() + "-" + chunk.getChunk_no();
+                PutChunkAttempts putChunkAttempts = new PutChunkAttempts(1, 5, msg, chunkKey, replication_degree);
+                Peer.getThreadExecutor().schedule(putChunkAttempts, 1, TimeUnit.SECONDS);
             }
-            catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-            String chunkKey = chunk.getFile_id()+"-"+chunk.getChunk_no();
-            PutChunkAttempts putChunkAttempts = new PutChunkAttempts(1, 5, msg, chunkKey, replication_degree, messageString);
-            Peer.getThreadExecutor().schedule(putChunkAttempts, 1, TimeUnit.SECONDS);
         }
 
         return "Backup successful";
