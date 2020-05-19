@@ -28,7 +28,7 @@ public class SSLConnection implements Runnable {
 
             dos = new DataOutputStream(sslSocket.getOutputStream());
             // BufferedReader in = new BufferedReader(new InputStreamReader(sslSocket.getInputStream()));
-            System.out.println("Sending message: "+ new String(msg, StandardCharsets.UTF_8) + " to "+this.ipAddress+":"+this.port);
+           // System.out.println("Sending message: "+ new String(msg, StandardCharsets.UTF_8) + " to "+this.ipAddress+":"+this.port);
 
             dos.write(msg);
             dos.flush();

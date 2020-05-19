@@ -79,11 +79,11 @@ public class Node {
         return null;
     }
 
-    public Node requestFindPred(BigInteger msgId, String Address, int port){
+    public Node requestFindPred(BigInteger msgId, String address, int port){
         //Create socket
 
         MessageFactory messageFactory = new MessageFactory();
-        byte[] message = messageFactory.findPredMsg(msgId);
+        byte[] message = messageFactory.findPredMsg(msgId,address,port);
         Peer.getThreadExecutor().execute(new SendMessagesManager(message, this.address, this.port));
 
         return null;

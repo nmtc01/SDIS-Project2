@@ -186,10 +186,10 @@ public class MessageFactory {
         return replyTest;
     }
 
-    //FINDPRED <SenderId>
-    public byte[] findPredMsg(BigInteger msgId) {
+    //FINDPRED <SenderId> <IpAdress> <Port>
+    public byte[] findPredMsg(BigInteger msgId,String address, int port) {
 
-        this.messageString = "FINDPRED " + msgId+ " \r\n\r\n";
+        this.messageString = "FINDPRED " + msgId+" "+address+" "+port+ " \r\n\r\n";
 
         String request = this.messageString;
         byte[] header = request.getBytes();
@@ -199,10 +199,10 @@ public class MessageFactory {
         return replyTest;
     }
 
-    //FINDPRED <SenderId>
+    //PRED <SenderId> <PredId> <PredAddress> <PredPort>
     public byte[] predMsg(BigInteger msgId,BigInteger predId, String predAddress, int predPort) {
 
-        this.messageString = "DPRED " + msgId+" "+predId+" "+predAddress+" "+predPort+ " \r\n\r\n";
+        this.messageString = "PRED " + msgId+" "+predId+" "+predAddress+" "+predPort+ " \r\n\r\n";
 
         String request = this.messageString;
         byte[] header = request.getBytes();
