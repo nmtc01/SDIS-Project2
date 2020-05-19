@@ -12,7 +12,6 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.locks.ReentrantLock;
 
 public class Peer extends Node implements PeerInterface{
 
@@ -30,10 +29,14 @@ public class Peer extends Node implements PeerInterface{
     private static Node[] fingerTable = new Node[m];
     private static ScheduledThreadPoolExecutor threadExecutor; //TODO use this instead of thread
     private static Node predNode;
-    private static Node succNode;
+    public static Node succNode;
+
+    private static Node stabilizeX;
+    public static boolean predActive = false;
 
     //lock joinning thread
-    public static final CountDownLatch latch = new CountDownLatch(1);
+    public static final CountDownLatch latchJoin = new CountDownLatch(1);
+    public static  CountDownLatch latchStabilize = new CountDownLatch(1);
 
     public Peer(String ipAddress, int port) {
 
@@ -109,7 +112,7 @@ public class Peer extends Node implements PeerInterface{
     public static void setSuccNode(Node sn){
         succNode = sn;
         System.out.println("\n Setup Succ "+sn.getNodeId() );
-        latch.countDown();
+        latchJoin.countDown();
     }
 
     public static void main(String args[]) {
@@ -273,13 +276,13 @@ public class Peer extends Node implements PeerInterface{
 
         //open thread to wait for the response
 
-        System.out.println("JOIN - locking...");
+        //System.out.println("JOIN - locking...");
         try {
-            latch.await();
+            latchJoin.await();
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-        System.out.println("JOIN - joined - SUCC - "+succNode.getNodeId());
+        //System.out.println("JOIN - joined - SUCC - "+succNode.getNodeId());
 
         predNode = succNode;
 
@@ -313,14 +316,21 @@ public class Peer extends Node implements PeerInterface{
     }
 
     public Node findSucc(String address, int port, BigInteger id){
+
         //case its the same id return itself
-/* TODO
+
         if(succNode.getNodeId().equals(this.getNodeId())){
-            if(!msgId.equals(this.getNodeId()))
-                //update
-                return this;
+            if(!id.equals(this.getNodeId())){
+                //succNode = new Node(address,port); //TODO use this
+                succNode = new Node(id,address,port);
+                //predNode = new Node(address,port); //TODO use this
+                predNode = new Node(id,address,port);
+                fingerTable[0] = succNode;
+            }
+
+            return this;
         }
-*/
+
         if( fallsBetween(id,this.getNodeId(),succNode.getNodeId())){
             return succNode;
         }else{
@@ -336,8 +346,7 @@ public class Peer extends Node implements PeerInterface{
 
     public Node findSuccFinger(String address, int port, BigInteger id, int fingerId){
         //case its the same id return itself
-        if(id.equals(this.getNodeId()))
-            return this;
+
 
         if( fallsBetween(id,this.getNodeId(),succNode.getNodeId())){
             return succNode;
@@ -347,8 +356,7 @@ public class Peer extends Node implements PeerInterface{
             if(newNode.getNodeId().equals(this.getNodeId()))
                 return this;
 
-
-            return newNode.requestFindSuccFinger(this.getNodeId(),address, port,id,fingerId);
+           return newNode.requestFindSuccFinger(this.getNodeId(),address, port,id,fingerId);
         }
 
     }
@@ -375,23 +383,39 @@ public class Peer extends Node implements PeerInterface{
      * called periodically, verifies n's immediate
      * successor, and tells the successor about n
      */
-
     public void stabilize(){
         //get predecessor
-        Node x = succNode.requestFindPred(this.getNodeId(),this.getAddress(),this.getPort());
+
+        stabilizeX = succNode.requestFindPred(this.getNodeId(),this.getAddress(),this.getPort());
+
+       // System.out.println("STABILIZE - locking...");
+
+        try {
+            latchStabilize.await();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
+        latchStabilize =  new CountDownLatch(1);
+        //System.out.println("STABILIZED - "+stabilizeX.getNodeId());
 
         //check if X falls between (n,successor)
 
-        if(x != null
-                && !this.getNodeId().equals(x.getNodeId())
-                &&  fallsBetween(x.getNodeId(), this.getNodeId(), succNode.getNodeId())
+        if(stabilizeX != null
+                && !this.getNodeId().equals(stabilizeX.getNodeId())
+                &&  fallsBetween(stabilizeX.getNodeId(), this.getNodeId(), succNode.getNodeId())
                     || this.getNodeId().equals(succNode.getNodeId() )
         ){
-            fingerTable[0] = x;
-            succNode = x;
+            fingerTable[0] = stabilizeX;
+            succNode = stabilizeX;
         }
 
         succNode.requestNotify(this.getNodeId(), this);
+    }
+
+    public static void updateSetStabilizeX(Node n){
+        stabilizeX = n;
+        latchStabilize.countDown();
     }
 
     /**
@@ -431,8 +455,10 @@ public class Peer extends Node implements PeerInterface{
     public void fixFingers(){
 
         for (int i = 1; i < fingerTable.length; i++) {
-            requestFindSuccFinger(this.getNodeId(), fingerTable[i].getAddress(),fingerTable[i].getPort(),getFinger(i),i);
+            Node n = findSuccFinger(this.getAddress(),this.getPort(),getFinger(i),i);
 
+            if(n!= null)
+                updateFinger(n,i);
         }
 
     }
@@ -451,11 +477,21 @@ public class Peer extends Node implements PeerInterface{
         if(predecessor has failed)
             predecessor = nil
          */
-
+        predActive = false;
         predNode.testResponse(this.getNodeId(),this.getAddress(),this.getPort());
+        try {
+            Thread.sleep(1);
 
-        //TODO this should be waithing for the reponse during a certain amount of time, it doesnt timeout
-        //if timeout
+            if(!predActive){
+                predNode=null;
+                System.out.println("Pred not found");
+            }
+
+
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
         //predNode = null;
 
 

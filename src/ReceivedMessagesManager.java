@@ -135,6 +135,14 @@ public class ReceivedMessagesManager implements Runnable {
                     manageFindPred(msgId,address,port);
                     break;
                 }
+                case "PRED":{
+                    BigInteger msgId = new BigInteger(header[1]);
+                    BigInteger predId = new BigInteger(header[2]);
+                    String predAddress = header[3];
+                    int predPort = Integer.parseInt(header[4]);
+                    managePred(msgId,predId,predAddress,predPort);
+                    break;
+                }
                 default:
                     break;
             }
@@ -146,6 +154,7 @@ public class ReceivedMessagesManager implements Runnable {
         }
 
     }
+
 
     public void parseMsg(byte[] data) {
         int index;
@@ -213,69 +222,112 @@ public class ReceivedMessagesManager implements Runnable {
 
     private void manageFindSucc(BigInteger msgId, String address, int port, BigInteger id) {
 
-        System.out.println("Received message: FINDSUCC " + msgId+" "+address+" "+ port + " "+id+'\n');
+        //System.out.println("Received message: FINDSUCC " + msgId+" "+address+" "+ port + " "+id);
 
-        ReceivedFindSucc receivedFindSucc = new ReceivedFindSucc(address, port, id);
-        Peer.getThreadExecutor().execute(receivedFindSucc);
+        Node node = Peer.getPeer().findSucc(address, port, id);
+
+        if (node != null) {
+
+            MessageFactory messageFactory = new MessageFactory();
+            byte[] message = messageFactory.replySuccMsg(Peer.getPeer().getNodeId(),node.getNodeId(),node.getAddress(),node.getPort());
+
+            SendMessagesManager sendMessagesManager = new SendMessagesManager(message, address, port);
+
+            Peer.getThreadExecutor().execute(sendMessagesManager);
+        }
     }
 
     private void manageSucc(BigInteger msgId, BigInteger succId, String succAddress, int succPort) {
 
-        System.out.println("Received message: SUCC " + msgId+" "+succId + " "+succAddress+" "+succPort);
+        //System.out.println("Received message: SUCC " + msgId+" "+succId + " "+succAddress+" "+succPort);
 
-        ReceivedSucc receivedSucc = new ReceivedSucc(msgId,succId, succAddress, succPort);
-        Peer.getThreadExecutor().execute(receivedSucc);
+        Node succNode = new Node(succId, succAddress, succPort);
+        Peer.setSuccNode(succNode);
 
     }
 
     private void manageFindSuccFinger(BigInteger msgId, String address, int port, BigInteger id, int fingerId) {
 
-        System.out.println("Received message: FINDSUCCFINGER " + msgId+" "+address + " "+port+" "+id+" "+fingerId);
+        //System.out.println("Received message: FINDSUCCFINGER " + msgId+" "+address + " "+port+" "+id+" "+fingerId);
 
-        ReceivedFindFingerSucc receivedFindFingerSucc = new ReceivedFindFingerSucc(address, port,fingerId,id);
-        Peer.getThreadExecutor().execute(receivedFindFingerSucc);
+        Node node = Peer.getPeer().findSuccFinger(address, port,id,fingerId);
+
+        if (node != null) {
+
+            MessageFactory messageFactory = new MessageFactory();
+            byte[] message = messageFactory.replySuccFingerMsg(Peer.getPeer().getNodeId(),node.getNodeId(),node.getAddress(),node.getPort(),fingerId);
+
+            SendMessagesManager sendMessagesManager = new SendMessagesManager(message, address, port);
+
+            Peer.getThreadExecutor().execute(sendMessagesManager);
+        }
 
 
     }
 
 
     private void manageSuccFinger(BigInteger msgId, BigInteger succId, String succAddress, int succPort, int fingerId) {
-        System.out.println("Received message: FINGERSUCC " + msgId+" "+succId + " "+succAddress+" "+succPort+" "+fingerId);
+        //System.out.println("Received message: FINGERSUCC " + msgId+" "+succId + " "+succAddress+" "+succPort+" "+fingerId);
 
-        ReceivedFingerSucc receivedFingerSucc = new ReceivedFingerSucc(msgId,succId, succAddress, succPort,fingerId);
-        Peer.getThreadExecutor().execute(receivedFingerSucc);
+        Node succNode = new Node(succId, succAddress, succPort);
+        //this.succId = new Node(succAddress, succPort); //todo this should be the stuff
+
+        Peer.updateFinger(succNode,fingerId);
+
     }
 
 
     private void manageNofity(BigInteger msgId, String address, int port) {
-        System.out.println("Received message: NOTIFY " + msgId+" "+address+" "+ port);
+        //System.out.println("Received message: NOTIFY " + msgId+" "+address+" "+ port);
 
-        ReceivedNotify receivedNotify = new ReceivedNotify(address,port);
-        Peer.getThreadExecutor().execute(receivedNotify);
+        //Node node = new Node(address, port); //Todo use this
+        Node node = new Node(msgId,address,port);
+
+        Peer.getPeer().notify(node);
     }
 
     private void manageTest(BigInteger msgId, String address, int port) {
 
-        System.out.println("Received message: TEST " + msgId+" "+address+" "+ port);
+       // System.out.println("Received message: TEST " + msgId+" "+address+" "+ port);
 
-        ReceivedTest receivedTest = new ReceivedTest(address, port);
-        Peer.getThreadExecutor().execute(receivedTest);
+        MessageFactory messageFactory = new MessageFactory();
+        byte[] message = messageFactory.replyTestMsg(Peer.getPeer().getNodeId());
+
+        SendMessagesManager sendMessagesManager = new SendMessagesManager(message, address, port);
+
+        Peer.getThreadExecutor().execute(sendMessagesManager);
     }
 
     private void manageReplyTest(BigInteger msgId) {
 
         System.out.println("Received message: REPTEST " + msgId);
 
+        Peer.predActive = true;
+
 
     }
 
     private void manageFindPred(BigInteger msgId,String address, int port ) {
-        System.out.println("Received message: FINDPRED " + msgId);
+       // System.out.println("Received message: FINDPRED " + msgId +" "+ address +" "+port);
 
-        ReceivedFindPred receivedFindPred = new ReceivedFindPred(msgId,address,port);
-        Peer.getThreadExecutor().execute(receivedFindPred);
+        Node node = Peer.findPred();
+
+        MessageFactory messageFactory = new MessageFactory();
+        byte[] message = messageFactory.predMsg(Peer.getPeer().getNodeId(),node.getNodeId(),node.getAddress(),node.getPort());
+
+        SendMessagesManager sendMessagesManager = new SendMessagesManager(message, address, port);
+
+        Peer.getThreadExecutor().execute(sendMessagesManager);
     }
 
+    private void managePred(BigInteger msgId, BigInteger predId, String predAddress, int predPort) {
+       // System.out.println("Received message: PRED " + msgId + " "+ predId+" "+ predAddress+" "+predPort );
+
+        //Node node = new Node(predAddress,predPort); //todo change to this
+        Node node = new Node(predId,predAddress,predPort);
+
+        Peer.updateSetStabilizeX(node);
+    }
 
 
 }
