@@ -8,6 +8,8 @@ public class ChordManager implements Runnable {
 
     @Override
     public void run() {
+        if (Peer.succNode.getNodeId().equals(peer.getNodeId()))
+            return;
 
         peer.stabilize();
         peer.fixFingers();
