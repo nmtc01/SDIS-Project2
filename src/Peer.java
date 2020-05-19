@@ -1,3 +1,5 @@
+import javax.net.ssl.SSLSocket;
+import javax.net.ssl.SSLSocketFactory;
 import java.io.*;
 import java.math.BigInteger;
 import java.rmi.registry.LocateRegistry;
@@ -28,7 +30,8 @@ public class Peer extends Node implements PeerInterface{
     private static int initPort;
     private static Node[] fingerTable = new Node[m];
     private static ScheduledThreadPoolExecutor threadExecutor; //TODO use this instead of thread
-    private static Node predNode;
+
+    public static Node predNode;
     public static Node succNode;
 
     private static Node stabilizeX;
@@ -349,7 +352,6 @@ public class Peer extends Node implements PeerInterface{
     public Node findSuccFinger(String address, int port, BigInteger id, int fingerId){
         //case its the same id return itself
 
-
         if( fallsBetween(id,this.getNodeId(),succNode.getNodeId())){
             return succNode;
         }else{
@@ -399,7 +401,10 @@ public class Peer extends Node implements PeerInterface{
         }
 
         latchStabilize =  new CountDownLatch(1);
-        System.out.println("STABILIZED - "+stabilizeX.getNodeId());
+
+        if(stabilizeX != null)
+            System.out.println("STABILIZED - "+stabilizeX.getNodeId());
+        else System.out.println("UNLOCKED");
 
         //check if X falls between (n,successor)
 
@@ -415,6 +420,28 @@ public class Peer extends Node implements PeerInterface{
         succNode.requestNotify(this.getNodeId(), this);
     }
 
+    public static void unlockStabilize(){
+
+        int i=1;
+        for( ; i<fingerTable.length; i++){
+            if( ! fingerTable[i].getNodeId().equals(succNode.getNodeId())  )
+                break;
+        }
+
+        BigInteger oldSuccId = fingerTable[0].getNodeId();
+
+        if(i == fingerTable.length)
+            succNode = Peer.getPeer();
+        else succNode = fingerTable[i];
+
+        for(int j = 0; j < fingerTable.length; j++){
+            if(fingerTable[j].getNodeId().equals(oldSuccId) ){
+                fingerTable[j] = succNode;
+            }
+        }
+
+        latchStabilize.countDown();
+    }
     public static void updateSetStabilizeX(Node n){
         stabilizeX = n;
         latchStabilize.countDown();
@@ -479,6 +506,7 @@ public class Peer extends Node implements PeerInterface{
         if(predecessor has failed)
             predecessor = nil
          */
+        /*
         predActive = false;
         predNode.testResponse(this.getNodeId(),this.getAddress(),this.getPort());
         try {
@@ -493,8 +521,38 @@ public class Peer extends Node implements PeerInterface{
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-
+*/
         //predNode = null;
+
+        DataOutputStream dos;
+        byte[] msg = ("bleh").getBytes();
+
+        System.out.println("TEST PRED");
+        //Create socket
+        //TODO check this
+        try {
+            SSLSocket sslSocket = (SSLSocket) SSLSocketFactory.getDefault().createSocket(predNode.getAddress(), predNode.getPort());
+
+            dos = new DataOutputStream(sslSocket.getOutputStream());
+
+            dos.flush();
+            dos.write(msg);
+
+            try {
+                Thread.sleep(1000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+
+            //String reply = in.readLine();
+
+            sslSocket.close();
+
+        } catch (IOException e) {
+            e.printStackTrace();
+            predNode = null;
+            System.out.println("Failed to connect to predecessor");
+        }
 
 
     }
@@ -763,6 +821,11 @@ public class Peer extends Node implements PeerInterface{
         for(int i=0; i < fingerTable.length; i++){
             System.out.println(" - F["+i+"] - " +fingerTable[i].getNodeId());
         }
+
+        System.out.println("SUCC - "+succNode.getNodeId());
+        if(predNode != null)
+            System.out.println("PRED - "+predNode.getNodeId());
+        else System.out.println("PRED - null");
         System.out.println(" ");
     }
 }
