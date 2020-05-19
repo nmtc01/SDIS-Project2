@@ -23,12 +23,11 @@ public class SSLConnection implements Runnable {
         //Create socket
         //TODO check this
         try {
-            //InetAddress host_name = InetAddress.getByName(this.ipAddress);
             SSLSocket sslSocket = (SSLSocket) SSLSocketFactory.getDefault().createSocket(this.ipAddress, this.port);
 
             dos = new DataOutputStream(sslSocket.getOutputStream());
             // BufferedReader in = new BufferedReader(new InputStreamReader(sslSocket.getInputStream()));
-           // System.out.println("Sending message: "+ new String(msg, StandardCharsets.UTF_8) + " to "+this.ipAddress+":"+this.port);
+            //System.out.println("Sending message: "+ new String(msg, StandardCharsets.UTF_8) + " to "+this.ipAddress+":"+this.port);
 
             dos.flush();
             dos.write(msg);
