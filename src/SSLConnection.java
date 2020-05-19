@@ -44,7 +44,9 @@ public class SSLConnection implements Runnable {
             sslSocket.close();
 
         } catch (IOException e) {
-            e.printStackTrace();
+            Peer.unlockStabilize();
+            System.out.println(Peer.latchStabilize.getCount());
+           // e.printStackTrace();
         }
     }
 

@@ -1,3 +1,5 @@
+import javax.imageio.IIOException;
+
 public class SendMessagesManager implements Runnable {
     private byte[] message;
     private SSLConnection sslConnection;
@@ -12,7 +14,7 @@ public class SendMessagesManager implements Runnable {
     }
 
     @Override
-    public void run() {
+    public void run(){
         this.sslConnection.send(message);
     }
 }

@@ -14,7 +14,8 @@ public class ChordManager implements Runnable {
         peer.stabilize();
         peer.fixFingers();
 
-       // peer.checkPred();
+        if(Peer.predNode != null)
+            peer.checkPred();
 
         peer.printFingerTable();
 
