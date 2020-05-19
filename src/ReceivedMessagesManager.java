@@ -137,6 +137,7 @@ public class ReceivedMessagesManager implements Runnable {
         String chunkKey = fileId +"-"+chunkNo;
         Storage peerStorage = Peer.getStorage();
         peerStorage.decrementChunkOccurences(chunkKey);
+        //TODO missing removing peer from peers_with_chunks on storage
     }
 
     private void manageGetChunk(String fileId, int chunkNo) {

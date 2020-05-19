@@ -516,7 +516,8 @@ public class Peer extends Node implements PeerInterface{
 
                     byte msg[] = messageFactory.reclaimMsg(chunk);
 
-                    for (int j = 0; j < chunk.getDesired_replication_degree(); j++) {
+                    //TODO send reclaim message to every peer on the system?
+                    for (int j = 0; j < fingerTable.length; j++) {
                         Node destNode = fingerTable[j];
 
                         //Send message
@@ -534,7 +535,12 @@ public class Peer extends Node implements PeerInterface{
                         byte msg2[] = messageFactory.putChunkMsg(chunk, chunk.getDesired_replication_degree());
                         Random random = new Random();
                         int random_value = random.nextInt(401);
-                        Peer.getThreadExecutor().schedule(new SendMessagesManager(msg2), random_value, TimeUnit.MILLISECONDS);
+
+                        for (int i = this.storage.getChunkCurrentDegree(chunkKey); i < chunk.getDesired_replication_degree(); i++) {
+                            //TODO check this - cannot send this to me(peer) again
+                            Node destNode = fingerTable[i];
+                            threadExecutor.schedule(new SendMessagesManager(msg2, destNode.getAddress(), destNode.getPort()),random_value, TimeUnit.MILLISECONDS);
+                        }
                     }
                     chunkIterator.remove();
                 }
@@ -604,17 +610,5 @@ public class Peer extends Node implements PeerInterface{
         }
 
         return storage;
-    }
-
-    /**
-     *
-     * Debug method to check chord messages
-     */
-
-    @Override
-    public synchronized String debug() {
-        //TODO communication TCP
-
-        return "Debug successfull";
     }
 }

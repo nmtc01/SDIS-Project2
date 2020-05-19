@@ -118,10 +118,6 @@ public class TestApp {
 
                     break;
                 }
-                case "DEBUG": {
-                    response = peer.debug();
-                    break;
-                }
             }
 
             System.out.println(response);
