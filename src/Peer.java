@@ -91,8 +91,6 @@ public class Peer extends Node implements PeerInterface{
 
         this.printFingerTable();
 
-
-
         threadExecutor.scheduleAtFixedRate( new ChordManager(this), 5, 5, TimeUnit.SECONDS);
     }
 
@@ -410,8 +408,8 @@ public class Peer extends Node implements PeerInterface{
 
         if(stabilizeX != null
                 && !this.getNodeId().equals(stabilizeX.getNodeId())
-                &&  fallsBetween(stabilizeX.getNodeId(), this.getNodeId(), succNode.getNodeId())
-                    || this.getNodeId().equals(succNode.getNodeId() )
+                && ( fallsBetween(stabilizeX.getNodeId(), this.getNodeId(), succNode.getNodeId())
+                    || this.getNodeId().equals(succNode.getNodeId() ) )
         ){
             fingerTable[0] = stabilizeX;
             succNode = stabilizeX;
