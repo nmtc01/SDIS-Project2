@@ -209,7 +209,7 @@ public class Peer extends Node implements PeerInterface{
     private static void savePeerStorage() {
         try {
             Storage storage = Peer.getStorage();
-            String filename = "Storage/storage.ser";
+            String filename = "Storage/"+Peer.getPeer().getNodeId()+"storage.ser";
 
             File file = new File(filename);
             if (!file.exists()) {
