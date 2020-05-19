@@ -88,6 +88,8 @@ public class Peer extends Node implements PeerInterface{
 
         this.printFingerTable();
 
+
+
         threadExecutor.scheduleAtFixedRate( new ChordManager(this), 5, 5, TimeUnit.SECONDS);
     }
 
@@ -149,7 +151,7 @@ public class Peer extends Node implements PeerInterface{
         System.out.println("Started peer");
 
         //Establish RMI communication between TestApp and Peer
-        establishRMICommunication(peer);
+        //establishRMICommunication(peer);
 
         //Initiate or load storage for initiator peer
         if (!loadPeerStorage()) {
@@ -299,9 +301,9 @@ public class Peer extends Node implements PeerInterface{
     public boolean fallsBetween(BigInteger id, BigInteger n, BigInteger succ){
 
         if (n.compareTo(succ) > 0)
-            return (id.compareTo(n) >= 0) || (id.compareTo(succ) <= 0);
+            return (id.compareTo(n) > 0) || (id.compareTo(succ) <= 0);    // 5.compareTo(4) => 1
 
-        return (id.compareTo(n) >= 0) && (id.compareTo(succ) <= 0);
+        return (id.compareTo(n) > 0) && (id.compareTo(succ) <= 0);
 
         /*
         //if n major than succ cannot be compared
@@ -369,7 +371,7 @@ public class Peer extends Node implements PeerInterface{
 
     public Node closestPrecedNode(BigInteger preservedId) {
         for(int i = fingerTable.length - 1; i >= 0; i--  )
-            if(fingerTable[i] != null && fallsBetween(fingerTable[i].getNodeId(),this.getNodeId(),preservedId))
+            if(fingerTable[i] != null && fallsBetween(fingerTable[i].getNodeId(), this.getNodeId(), preservedId))
                 return fingerTable[i];
         return this;
     }
@@ -388,7 +390,7 @@ public class Peer extends Node implements PeerInterface{
 
         stabilizeX = succNode.requestFindPred(this.getNodeId(),this.getAddress(),this.getPort());
 
-       // System.out.println("STABILIZE - locking...");
+        System.out.println("STABILIZE - locking...");
 
         try {
             latchStabilize.await();
@@ -397,7 +399,7 @@ public class Peer extends Node implements PeerInterface{
         }
 
         latchStabilize =  new CountDownLatch(1);
-        //System.out.println("STABILIZED - "+stabilizeX.getNodeId());
+        System.out.println("STABILIZED - "+stabilizeX.getNodeId());
 
         //check if X falls between (n,successor)
 

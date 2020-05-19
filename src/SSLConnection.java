@@ -34,8 +34,17 @@ public class SSLConnection implements Runnable {
             // BufferedReader in = new BufferedReader(new InputStreamReader(sslSocket.getInputStream()));
            // System.out.println("Sending message: "+ new String(msg, StandardCharsets.UTF_8) + " to "+this.ipAddress+":"+this.port);
 
-            dos.write(msg);
             dos.flush();
+            dos.write(msg);
+
+            try {
+                Thread.sleep(1000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+
+            //String reply = in.readLine();
+
             sslSocket.close();
 
         } catch (IOException e) {
