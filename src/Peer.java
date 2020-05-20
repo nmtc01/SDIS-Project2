@@ -205,6 +205,10 @@ public class Peer extends Node implements PeerInterface{
         return threadExecutor;
     }
 
+    public Node[] getFingerTable() {
+        return fingerTable;
+    }
+
     /////////////////////////////////
     //////// STORAGE SECTION ////////
     /////////////////////////////////
@@ -800,7 +804,7 @@ public class Peer extends Node implements PeerInterface{
         for(int i=0; i < fingerTable.length; i++){
             System.out.println(" - F["+i+"] - " +fingerTable[i].getNodeId());
         }*/
-        System.out.println(" - F[0] - " +fingerTable[0].getNodeId());
+        //System.out.println(" - F[0] - " +fingerTable[0].getNodeId());
         System.out.println("SUCC - "+succNode.getNodeId());
         if(predNode != null)
             System.out.println("PRED - "+predNode.getNodeId());
