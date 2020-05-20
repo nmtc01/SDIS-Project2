@@ -5,7 +5,7 @@ import java.security.NoSuchAlgorithmException;
 public class Utility {
     public static byte[] sha256(String string) throws NoSuchAlgorithmException, UnsupportedEncodingException {
         byte[] fileId = string.getBytes("UTF-8");
-        MessageDigest md = MessageDigest.getInstance("SHA-256");
+        MessageDigest md = MessageDigest.getInstance("SHA-1");
 
         return md.digest(fileId);
     }

@@ -17,8 +17,8 @@ import java.util.concurrent.TimeUnit;
 
 public class Peer extends Node implements PeerInterface{
 
-    //testing chord
-    private static int m = 4; //256
+    private static int m = 160;
+    private static int delay = 20;
 
     //Args
     private static Peer peer;
@@ -35,7 +35,6 @@ public class Peer extends Node implements PeerInterface{
     public static Node succNode;
 
     private static Node stabilizeX;
-    public static boolean predActive = false;
 
     //lock joinning thread
     public static final CountDownLatch latchJoin = new CountDownLatch(1);
@@ -47,7 +46,7 @@ public class Peer extends Node implements PeerInterface{
         super(ipAddress, port);
         succNode = this;
 
-        System.out.println("Created with Id: "+this.getNodeId());
+        System.out.println("\nCreated with Id: "+this.getNodeId());
 
         Arrays.fill(fingerTable, this);
 
@@ -55,7 +54,7 @@ public class Peer extends Node implements PeerInterface{
 
         this.printFingerTable();
 
-        threadExecutor.scheduleAtFixedRate( new ChordManager(this), 5, 5, TimeUnit.SECONDS);
+        threadExecutor.scheduleAtFixedRate( new ChordManager(this), delay, delay, TimeUnit.SECONDS);
     }
 
     public Peer(String ipAddress, int port, String initAddress, int initPort) {
@@ -63,7 +62,7 @@ public class Peer extends Node implements PeerInterface{
         super(ipAddress, port);
         succNode = this;
 
-        System.out.println("Created with Id: "+this.getNodeId());
+        System.out.println("\nCreated with Id: "+this.getNodeId());
 
         Arrays.fill(fingerTable, this);
 
@@ -73,17 +72,17 @@ public class Peer extends Node implements PeerInterface{
 
         this.printFingerTable();
 
-        threadExecutor.scheduleAtFixedRate( new ChordManager(this), 5, 5, TimeUnit.SECONDS);
+        threadExecutor.scheduleAtFixedRate( new ChordManager(this), delay, delay, TimeUnit.SECONDS);
     }
 
-    //testing funtions
+    //TO DEBUG USE THIS
     public Peer(int order, String ipAddress, int port) {
 
         //create a new chord ring
         super(order, ipAddress, port);
         succNode = this;
 
-        System.out.println("Created with Id: "+this.getNodeId());
+        System.out.println("\nCreated with Id: "+this.getNodeId());
 
         Arrays.fill(fingerTable, this);
 
@@ -91,15 +90,16 @@ public class Peer extends Node implements PeerInterface{
 
         this.printFingerTable();
 
-        threadExecutor.scheduleAtFixedRate( new ChordManager(this), 5, 5, TimeUnit.SECONDS);
+        threadExecutor.scheduleAtFixedRate( new ChordManager(this), delay, delay, TimeUnit.SECONDS);
     }
 
+    //TO DEBUG USE THIS
     public Peer(int order, String ipAddress, int port, String initAddress, int initPort) {
 
         super(order, ipAddress, port);
         succNode = this;
 
-        System.out.println("Created with Id: "+this.getNodeId());
+        System.out.println("\nCreated with Id: "+this.getNodeId());
 
         Arrays.fill(fingerTable, this);
 
@@ -109,11 +109,12 @@ public class Peer extends Node implements PeerInterface{
 
         this.printFingerTable();
 
-         threadExecutor.scheduleAtFixedRate( new ChordManager(this), 5, 5, TimeUnit.SECONDS);
+         threadExecutor.scheduleAtFixedRate( new ChordManager(this), delay, delay, TimeUnit.SECONDS);
     }
 
     public static void setSuccNode(Node sn){
         succNode = sn;
+        fingerTable[0] = sn;
         System.out.println("\n Setup Succ "+sn.getNodeId() );
         latchJoin.countDown();
     }
@@ -133,22 +134,23 @@ public class Peer extends Node implements PeerInterface{
         threadExecutor.execute(new SSLConnection(ipAddress,port));
 
         //Create initiator peer
-/*
+
         if (args.length == 5) {
             peer = new Peer(ipAddress, port, initIpAddress, initPort);
         }
         else {
             peer = new Peer(ipAddress, port);
         }
-*/
 
-       if (args.length == 6) {  // change to 6
+        /* TODO DEBUG WITH M=4
+       if (args.length == 6) {
             peer = new Peer(Integer.parseInt(args[5]),ipAddress, port, initIpAddress, initPort);
         }
         else {
             peer = new Peer(Integer.parseInt(args[3]),ipAddress, port);
         }
 
+        */
         System.out.println("Started peer");
 
         //Establish RMI communication between TestApp and Peer
@@ -165,7 +167,7 @@ public class Peer extends Node implements PeerInterface{
 
     public static boolean parseArgs(String[] args) {
         //Check the number of arguments given
-        if (args.length != 4 && args.length != 6) { //change to 3 - 5
+        if (args.length != 3 && args.length != 5) { //TO DEBUG USE 4 - 6
             System.out.println("Usage: java Peer access_point addressInit portInit [address port]");
             return false;
         }
@@ -177,7 +179,7 @@ public class Peer extends Node implements PeerInterface{
         //Parse port
         port = Integer.parseInt(args[2]);
         //Parse init
-        if (args.length == 6) { //change to 5
+        if (args.length == 5) { //TO DEBUG USE 6
             initIpAddress = args[3];
             initPort = Integer.parseInt(args[4]);
         }
@@ -230,7 +232,7 @@ public class Peer extends Node implements PeerInterface{
 
     private static boolean loadPeerStorage() {
         try {
-            String filenameUnix = "Storage/storage.ser";
+            String filenameUnix = "Storage/"+peer.getNodeId()+"/storage.ser";
 
             File file = new File(filenameUnix);
             String filename = filenameUnix;
@@ -279,13 +281,13 @@ public class Peer extends Node implements PeerInterface{
 
         //open thread to wait for the response
 
-        //System.out.println("JOIN - locking...");
+        System.out.println("JOIN - locking...");
         try {
             latchJoin.await();
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-        //System.out.println("JOIN - joined - SUCC - "+succNode.getNodeId());
+        System.out.println("JOIN - joined - SUCC - "+succNode.getNodeId());
 
         predNode = succNode;
 
@@ -298,7 +300,6 @@ public class Peer extends Node implements PeerInterface{
 
     }
 
-    //todo check if this is right
     public boolean fallsBetween(BigInteger id, BigInteger n, BigInteger succ){
 
         if (n.compareTo(succ) > 0)
@@ -306,14 +307,12 @@ public class Peer extends Node implements PeerInterface{
 
         return (id.compareTo(n) > 0) && (id.compareTo(succ) <= 0);
 
+        //TO DEBUG USE THIS
         /*
-        //if n major than succ cannot be compared
-        if(n.compareTo(succ) < 0)
-            return false;
-        else if(id.compareTo(n) >= 0 && id.compareTo(succ) <= 0)
-            return true;
-        else
-            return false;
+        if (n.compareTo(succ) > 0)
+            return (id.compareTo(n) > 0) || (id.compareTo(succ) <= 0);    // 5.compareTo(4) => 1
+
+        return (id.compareTo(n) > 0) && (id.compareTo(succ) <= 0);
         */
 
     }
@@ -324,10 +323,10 @@ public class Peer extends Node implements PeerInterface{
 
         if(succNode.getNodeId().equals(this.getNodeId())){
             if(!id.equals(this.getNodeId())){
-                //succNode = new Node(address,port); //TODO use this
-                succNode = new Node(id,address,port);
-                //predNode = new Node(address,port); //TODO use this
-                predNode = new Node(id,address,port);
+                succNode = new Node(address,port);
+                //succNode = new Node(id,address,port); //TO DEBUG USE THIS
+                predNode = new Node(address,port);
+                //predNode = new Node(id,address,port); //TO DEBUG USE THIS
                 fingerTable[0] = succNode;
             }
 
@@ -367,8 +366,6 @@ public class Peer extends Node implements PeerInterface{
         return predNode;
     }
 
-    public void setPred(Node node){predNode=node;}
-
     public Node closestPrecedNode(BigInteger preservedId) {
         for(int i = fingerTable.length - 1; i >= 0; i--  )
             if(fingerTable[i] != null && fallsBetween(fingerTable[i].getNodeId(), this.getNodeId(), preservedId))
@@ -391,15 +388,15 @@ public class Peer extends Node implements PeerInterface{
         stabilizeX = succNode.requestFindPred(this.getNodeId(),this.getAddress(),this.getPort());
 
         System.out.println("STABILIZE - locking...");
-
+        latchStabilize =  new CountDownLatch(1);
         try {
             latchStabilize.await();
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
 
-        latchStabilize =  new CountDownLatch(1);
 
+        //TO DEBUG
         if(stabilizeX != null)
             System.out.println("STABILIZED - "+stabilizeX.getNodeId());
         else System.out.println("UNLOCKED");
@@ -407,9 +404,8 @@ public class Peer extends Node implements PeerInterface{
         //check if X falls between (n,successor)
 
         if(stabilizeX != null
-                && !this.getNodeId().equals(stabilizeX.getNodeId())
-                && ( fallsBetween(stabilizeX.getNodeId(), this.getNodeId(), succNode.getNodeId())
-                    || this.getNodeId().equals(succNode.getNodeId() ) )
+                && ! this.getNodeId().equals(stabilizeX.getNodeId() )
+                && ( fallsBetween(stabilizeX.getNodeId(), this.getNodeId(), succNode.getNodeId()) || this.getNodeId().equals(succNode.getNodeId()) )
         ){
             fingerTable[0] = stabilizeX;
             succNode = stabilizeX;
@@ -440,6 +436,7 @@ public class Peer extends Node implements PeerInterface{
 
         latchStabilize.countDown();
     }
+
     public static void updateSetStabilizeX(Node n){
         stabilizeX = n;
         latchStabilize.countDown();
@@ -468,7 +465,7 @@ public class Peer extends Node implements PeerInterface{
 
                  if (succNode.getNodeId().equals(this.getNodeId())) {
                      succNode = node;
-                        fingerTable[0] = node;
+                     fingerTable[0] = node;
                  }
              }
          }
@@ -504,28 +501,11 @@ public class Peer extends Node implements PeerInterface{
         if(predecessor has failed)
             predecessor = nil
          */
-        /*
-        predActive = false;
-        predNode.testResponse(this.getNodeId(),this.getAddress(),this.getPort());
-        try {
-            Thread.sleep(1);
-
-            if(!predActive){
-                predNode=null;
-                System.out.println("Pred not found");
-            }
-
-
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-*/
-        //predNode = null;
 
         DataOutputStream dos;
-        byte[] msg = ("bleh").getBytes();
+        byte[] msg = ("test").getBytes();
 
-        System.out.println("TEST PRED");
+        //System.out.println("TEST PRED");
         //Create socket
         //TODO check this
         try {
@@ -816,10 +796,11 @@ public class Peer extends Node implements PeerInterface{
     public void printFingerTable(){
 
         System.out.println("\nPrinting Finger Table...");
+       /*
         for(int i=0; i < fingerTable.length; i++){
             System.out.println(" - F["+i+"] - " +fingerTable[i].getNodeId());
-        }
-
+        }*/
+        System.out.println(" - F[0] - " +fingerTable[0].getNodeId());
         System.out.println("SUCC - "+succNode.getNodeId());
         if(predNode != null)
             System.out.println("PRED - "+predNode.getNodeId());

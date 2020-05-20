@@ -147,43 +147,16 @@ public class MessageFactory {
         return replySucc;
     }
 
-    //TEST <SenderId> <ReqIpAdress> <ReqPort> <CRLF><CRLF>
+    //NOTIFY <SenderId> <ReqIpAdress> <ReqPort> <CRLF><CRLF>
     public byte[] notifyMsg(BigInteger msgId, String address, int port) {
 
         this.messageString = "NOTIFY " + msgId+ " "+address+" "+port;
-
         String request = this.messageString+" \r\n\r\n";
         byte[] header = request.getBytes();
         byte[] notify = new byte[header.length];
         System.arraycopy(header,0,notify,0,header.length);
 
         return notify;
-    }
-
-    //TEST <SenderId> <ReqIpAdress> <ReqPort> <CRLF><CRLF>
-    public byte[] testMsg(BigInteger msgId, String succAddress, int succPort) {
-
-        this.messageString = "TEST " + msgId+ " "+succAddress+" "+succPort;
-
-        String request = this.messageString+" \r\n\r\n";
-        byte[] header = request.getBytes();
-        byte[] test = new byte[header.length];
-        System.arraycopy(header,0,test,0,header.length);
-
-        return test;
-    }
-
-    //REPTEST <SenderId>
-    public byte[] replyTestMsg(BigInteger msgId) {
-
-        this.messageString = "REPTEST " + msgId;
-
-        String request = this.messageString+ " \r\n\r\n";
-        byte[] header = request.getBytes();
-        byte[] replyTest = new byte[header.length];
-        System.arraycopy(header,0,replyTest,0,header.length);
-
-        return replyTest;
     }
 
     //FINDPRED <SenderId> <IpAdress> <Port>

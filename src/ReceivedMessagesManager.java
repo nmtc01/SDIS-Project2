@@ -32,9 +32,9 @@ public class ReceivedMessagesManager implements Runnable {
             String request = bufferedReader.readLine().trim();
             String[] header = request.split(" ");
 
-            System.out.println("##################################");
-            System.out.println("##      Received message:       ##");
-            System.out.println("##################################");
+            //System.out.println("##################################");
+            //System.out.println("##      Received message:       ##");
+            //System.out.println("##################################");
 
             //Manage subProtocol
             String subProtocol = header[0];
@@ -114,18 +114,7 @@ public class ReceivedMessagesManager implements Runnable {
                     BigInteger msgId = new BigInteger(header[1]);
                     String address = header[2];
                     int port = Integer.parseInt(header[3]);
-                    manageNofity(msgId,address,port);
-                    break;
-                }
-                case "TEST":{
-                    BigInteger msgId = new BigInteger(header[1]);
-                    String succAddress = header[2];
-                    int succPort = Integer.parseInt(header[3]);
-                    manageTest(msgId,succAddress,succPort);
-                    break;
-                } case "REPTEST":{
-                    BigInteger msgId = new BigInteger(header[1]);
-                    manageReplyTest(msgId);
+                    manageNotify(msgId,address,port);
                     break;
                 }
                 case "FINDPRED":{
@@ -241,7 +230,9 @@ public class ReceivedMessagesManager implements Runnable {
 
         //System.out.println("Received message: SUCC " + msgId+" "+succId + " "+succAddress+" "+succPort);
 
-        Node succNode = new Node(succId, succAddress, succPort);
+        //Node succNode = new Node(succId, succAddress, succPort); //TO DEBUG USE THIS
+        Node succNode = new Node(succAddress, succPort);
+
         Peer.setSuccNode(succNode);
 
     }
@@ -269,42 +260,21 @@ public class ReceivedMessagesManager implements Runnable {
     private void manageSuccFinger(BigInteger msgId, BigInteger succId, String succAddress, int succPort, int fingerId) {
         //System.out.println("Received message: FINGERSUCC " + msgId+" "+succId + " "+succAddress+" "+succPort+" "+fingerId);
 
-        Node succNode = new Node(succId, succAddress, succPort);
-        //this.succId = new Node(succAddress, succPort); //todo this should be the stuff
+        //Node succNode = new Node(succId, succAddress, succPort);//TO DEBUG USE THIS
+        Node succNode = new Node(succAddress, succPort);
 
         Peer.updateFinger(succNode,fingerId);
 
     }
 
 
-    private void manageNofity(BigInteger msgId, String address, int port) {
+    private void manageNotify(BigInteger msgId, String address, int port) {
         //System.out.println("Received message: NOTIFY " + msgId+" "+address+" "+ port);
 
-        //Node node = new Node(address, port); //Todo use this
-        Node node = new Node(msgId,address,port);
+        //Node node = new Node(msgId,address,port); //TO DEBUG USE THIS
+        Node node = new Node(address, port);
 
         Peer.getPeer().notify(node);
-    }
-
-    private void manageTest(BigInteger msgId, String address, int port) {
-
-       // System.out.println("Received message: TEST " + msgId+" "+address+" "+ port);
-
-        MessageFactory messageFactory = new MessageFactory();
-        byte[] message = messageFactory.replyTestMsg(Peer.getPeer().getNodeId());
-
-        SendMessagesManager sendMessagesManager = new SendMessagesManager(message, address, port);
-
-        Peer.getThreadExecutor().execute(sendMessagesManager);
-    }
-
-    private void manageReplyTest(BigInteger msgId) {
-
-        System.out.println("Received message: REPTEST " + msgId);
-
-        Peer.predActive = true;
-
-
     }
 
     private void manageFindPred(BigInteger msgId,String address, int port ) {
@@ -323,8 +293,8 @@ public class ReceivedMessagesManager implements Runnable {
     private void managePred(BigInteger msgId, BigInteger predId, String predAddress, int predPort) {
        // System.out.println("Received message: PRED " + msgId + " "+ predId+" "+ predAddress+" "+predPort );
 
-        //Node node = new Node(predAddress,predPort); //todo change to this
-        Node node = new Node(predId,predAddress,predPort);
+        //Node node = new Node(predId,predAddress,predPort); //TO DEBUG USE THIS
+        Node node = new Node(predAddress,predPort);
 
         Peer.updateSetStabilizeX(node);
     }

@@ -12,25 +12,6 @@ public class Node {
     private String address;
     private BigInteger id;
 
-    private static byte[] _0 = {97};
-    private static byte[] _1 = {98};
-    private static byte[] _2 = {99};
-    private static byte[] _3 = {100};
-    private static byte[] _4 = {101};
-    private static byte[] _5 = {102};
-    private static byte[] _6 = {103};
-    private static byte[] _7 = {104};
-    private static byte[] _8 = {105};
-    private static byte[] _9 = {106};
-    private static byte[] _10 = {107};
-    private static byte[] _11 = {108};
-    private static byte[] _12 = {109};
-    private static byte[] _13 = {110};
-    private static byte[] _14 = {111};
-    private static byte[] _15 = {112};
-
-    private static byte[][] possibleId = {_0,_1,_2,_3,_4,_5,_6,_7,_8,_9,_10,_11,_12,_13,_14,_15};
-
     public Node(String address, int port) {
         this.port = port;
         this.address = address;
@@ -43,7 +24,7 @@ public class Node {
         }
     }
 
-    //debug
+    //TO DEBUG USE THIS
     public Node(int order, String address, int port) {
 
         this.port = port;
@@ -51,7 +32,7 @@ public class Node {
         this.id = new BigInteger(String.valueOf(order));
 
     }
-
+    //TO DEBUG USE THIS
     public Node(BigInteger id, String address, int port) {
 
         this.port = port;
@@ -90,6 +71,7 @@ public class Node {
     }
 
     public Node requestFindSuccFinger(BigInteger msgId, String ip, int port, BigInteger id, int fingerId) {
+
         //Create socket
         MessageFactory messageFactory = new MessageFactory();
         byte[] message = messageFactory.findSuccFingerMsg(msgId,ip,port,id,fingerId);
@@ -106,16 +88,6 @@ public class Node {
         Peer.getThreadExecutor().execute(new SendMessagesManager(message, this.address, this.port));
 
         return null;
-    }
-
-    public boolean testResponse(BigInteger id, String ip, int port){
-
-        //Create socket
-        MessageFactory messageFactory = new MessageFactory();
-        byte[] message = messageFactory.testMsg(this.id,ip,port);
-        Peer.getThreadExecutor().execute(new SendMessagesManager(message, this.address, this.port));
-
-        return true;
     }
 
 }
