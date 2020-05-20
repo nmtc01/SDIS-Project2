@@ -16,7 +16,9 @@ public class Node {
         this.port = port;
         this.address = address;
         try {
-            this.id = new BigInteger(Utility.sha256(this.address+":"+this.port));
+            byte[] sha1 =  Utility.sha256(this.address+":"+this.port);
+            Integer val = Utility.convertToInt( sha1);
+            this.id = new BigInteger(String.valueOf(val));
         } catch (NoSuchAlgorithmException e) {
             e.printStackTrace();
         } catch (UnsupportedEncodingException e) {

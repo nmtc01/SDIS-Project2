@@ -1,13 +1,14 @@
 import java.io.UnsupportedEncodingException;
+import java.nio.ByteBuffer;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
 public class Utility {
     public static byte[] sha256(String string) throws NoSuchAlgorithmException, UnsupportedEncodingException {
-        byte[] fileId = string.getBytes("UTF-8");
-        MessageDigest md = MessageDigest.getInstance("SHA-1");
+        byte[] id = string.getBytes("UTF-8");
+        MessageDigest md = MessageDigest.getInstance("SHA-256");
 
-        return md.digest(fileId);
+        return md.digest(id);
     }
 
     public static String sha256toString(byte[] sha256) {
@@ -22,5 +23,16 @@ public class Utility {
 
         // Convert message digest into bitstring
         return sha256String.toString();
+    }
+
+    public static Integer convertToInt(byte[] sha1){
+        if(sha1 == null){
+
+            System.out.println("failed to convert to int");
+            return null;
+        }
+
+        ByteBuffer bb= ByteBuffer.wrap(sha1);
+        return bb.getInt();
     }
 }

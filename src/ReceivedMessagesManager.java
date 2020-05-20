@@ -269,7 +269,7 @@ public class ReceivedMessagesManager implements Runnable {
 
 
     private void manageNotify(BigInteger msgId, String address, int port) {
-        //System.out.println("Received message: NOTIFY " + msgId+" "+address+" "+ port);
+        System.out.println("Received message: NOTIFY " + msgId+" "+address+" "+ port);
 
         //Node node = new Node(msgId,address,port); //TO DEBUG USE THIS
         Node node = new Node(address, port);

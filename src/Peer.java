@@ -17,8 +17,8 @@ import java.util.concurrent.TimeUnit;
 
 public class Peer extends Node implements PeerInterface{
 
-    private static int m = 160;
-    private static int delay = 20;
+    private static int m = 32;
+    private static int delay = 10;
 
     //Args
     private static Peer peer;
@@ -452,9 +452,9 @@ public class Peer extends Node implements PeerInterface{
                 predecessor = n';
          */
          if ( predNode == null
-                 || fallsBetween(node.getNodeId(), predNode.getNodeId(), this.getNodeId())
-                 || !predNode.getNodeId().equals(this.getNodeId())
-         ){
+                 || fallsBetween(node.getNodeId(), predNode.getNodeId(), this.getNodeId() )
+                 || !predNode.getNodeId().equals(this.getNodeId())){
+
              if (node.getNodeId().equals(this.getNodeId()))
                  return;
 

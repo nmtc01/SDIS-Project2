@@ -49,7 +49,7 @@ public class SSLConnection implements Runnable {
         } catch (IOException e) {
             Peer.unlockStabilize();
             System.out.println(Peer.latchStabilize.getCount());
-           // e.printStackTrace();
+            e.printStackTrace();
         }
     }
 
