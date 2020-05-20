@@ -124,9 +124,9 @@ public class MessageFactory {
     //FINDSUCCFINGER <SenderId> <ReqIpAdress> <ReqPort> <ReqId> <FingerId> <CRLF><CRLF>
     public byte[] findSuccFingerMsg(BigInteger msgId, String ip, int port, BigInteger id, int fingerId) {
 
-        this.messageString = "FINDSUCCFINGER "+msgId+" "+ip+" "+port+" "+id+ " "+fingerId+" \r\n\r\n";
+        this.messageString = "FINDSUCCFINGER "+msgId+" "+ip+" "+port+" "+id+ " "+fingerId;
 
-        String request = this.messageString;
+        String request = this.messageString+" \r\n\r\n";
         byte[] header = request.getBytes();
         byte[] findSucc = new byte[header.length];
         System.arraycopy(header, 0, findSucc, 0, header.length);
@@ -137,9 +137,9 @@ public class MessageFactory {
     //FINGERSUCC <SenderId> <SuccId> <SuccAddress> <SuccPort> <FingerId> <CRLF><CRLF>
     public byte[] replySuccFingerMsg(BigInteger msgId, BigInteger succId, String succAddress, int succPort, int fingerId) {
 
-        this.messageString = "FINGERSUCC " + msgId+ " "+ succId+" "+succAddress+" "+succPort +" "+fingerId+" \r\n\r\n";
+        this.messageString = "FINGERSUCC " + msgId+ " "+ succId+" "+succAddress+" "+succPort +" "+fingerId;
 
-        String request = this.messageString;
+        String request = this.messageString+" \r\n\r\n";
         byte[] header = request.getBytes();
         byte[] replySucc = new byte[header.length];
         System.arraycopy(header,0,replySucc,0,header.length);
@@ -150,9 +150,9 @@ public class MessageFactory {
     //TEST <SenderId> <ReqIpAdress> <ReqPort> <CRLF><CRLF>
     public byte[] notifyMsg(BigInteger msgId, String address, int port) {
 
-        this.messageString = "NOTIFY " + msgId+ " "+address+" "+port+" \r\n\r\n";
+        this.messageString = "NOTIFY " + msgId+ " "+address+" "+port;
 
-        String request = this.messageString;
+        String request = this.messageString+" \r\n\r\n";
         byte[] header = request.getBytes();
         byte[] notify = new byte[header.length];
         System.arraycopy(header,0,notify,0,header.length);
