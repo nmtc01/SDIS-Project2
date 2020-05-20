@@ -4,6 +4,7 @@ import java.io.*;
 import java.math.BigInteger;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.nio.ByteBuffer;
 import java.security.NoSuchAlgorithmException;
 
 public class Node {
@@ -16,9 +17,13 @@ public class Node {
         this.port = port;
         this.address = address;
         try {
-            byte[] sha1 =  Utility.sha256(this.address+":"+this.port);
-            Integer val = Utility.convertToInt( sha1);
-            this.id = new BigInteger(String.valueOf(val));
+            byte[] sha1 =  Utility.sha1(this.address+":"+this.port);
+           // Integer val = Utility.convertToInt( sha1);
+
+            //ByteBuffer bb= ByteBuffer.wrap(sha1);
+            //return bb.getInt();
+
+            this.id = new BigInteger(1,sha1);
         } catch (NoSuchAlgorithmException e) {
             e.printStackTrace();
         } catch (UnsupportedEncodingException e) {

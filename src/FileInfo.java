@@ -34,7 +34,7 @@ public class FileInfo implements java.io.Serializable {
         String directory = this.file.getParent();
         String fileId;
         try {
-            fileId = Utility.sha256toString(Utility.sha256(filename+"."+date+"."+directory));
+            fileId = Utility.sha256toString(Utility.sha1(filename+"."+date+"."+directory));
         } catch (
         NoSuchAlgorithmException e) {
             e.printStackTrace();

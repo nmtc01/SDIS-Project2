@@ -5,7 +5,6 @@ import java.math.BigInteger;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.Random;
@@ -17,8 +16,8 @@ import java.util.concurrent.TimeUnit;
 
 public class Peer extends Node implements PeerInterface{
 
-    private static int m = 32;
-    private static int delay = 10;
+    private static int m = 160;
+    private static int delay = 5;
 
     //Args
     private static Peer peer;
@@ -281,16 +280,17 @@ public class Peer extends Node implements PeerInterface{
 
         //open thread to wait for the response
 
-        System.out.println("JOIN - locking...");
+        //System.out.println("JOIN - locking...");
         try {
             latchJoin.await();
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-        System.out.println("JOIN - joined - SUCC - "+succNode.getNodeId());
+        //System.out.println("JOIN - joined - SUCC - "+succNode.getNodeId());
 
         predNode = succNode;
 
+        System.out.println(this.getNodeId()+": "+getFinger(0));
         for (int i = 0; i < fingerTable.length; i++) {
             if (fallsBetween(getFinger(i), this.getNodeId(), succNode.getNodeId()))
                 fingerTable[i] = succNode;
@@ -388,14 +388,14 @@ public class Peer extends Node implements PeerInterface{
         stabilizeX = succNode.requestFindPred(this.getNodeId(),this.getAddress(),this.getPort());
 
         System.out.println("STABILIZE - locking...");
-        latchStabilize =  new CountDownLatch(1);
+
         try {
             latchStabilize.await();
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
 
-
+        latchStabilize =  new CountDownLatch(1);
         //TO DEBUG
         if(stabilizeX != null)
             System.out.println("STABILIZED - "+stabilizeX.getNodeId());
@@ -796,11 +796,11 @@ public class Peer extends Node implements PeerInterface{
     public void printFingerTable(){
 
         System.out.println("\nPrinting Finger Table...");
-       /*
+
         for(int i=0; i < fingerTable.length; i++){
             System.out.println(" - F["+i+"] - " +fingerTable[i].getNodeId());
-        }*/
-        System.out.println(" - F[0] - " +fingerTable[0].getNodeId());
+        }
+        //System.out.println(" - F[0] - " +fingerTable[0].getNodeId());
         System.out.println("SUCC - "+succNode.getNodeId());
         if(predNode != null)
             System.out.println("PRED - "+predNode.getNodeId());

@@ -30,10 +30,8 @@ sleep 2
 
 osascript -e 'tell app "Terminal"
    do script "cd Desktop/SDIS/sdis1920-t3g22/out/production/sdis1920-t3g22/
-java -Djavax.net.ssl.keyStore=keystore -Djavax.net.ssl.keyStorePassword=sdis1920 -Djavax.net.ssl.trustStore=truststore -Djavax.net.ssl.trustStorePassword=sdis1920 Peer 4 127.0.0.1 9003 127.0.0.1 9002"
+java -Djavax.net.ssl.keyStore=keystore -Djavax.net.ssl.keyStorePassword=sdis1920 -Djavax.net.ssl.trustStore=truststore -Djavax.net.ssl.trustStorePassword=sdis1920 Peer 3 127.0.0.1 9003 127.0.0.1 9002"
 end tell'
-
-
 
 
 # 192.168.1.15
