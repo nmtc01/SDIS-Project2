@@ -424,11 +424,7 @@ public class Peer extends Node implements PeerInterface{
 
         BigInteger oldSuccId = fingerTable[0].getNodeId();
 
-        if(i == fingerTable.length)
-            succNode = Peer.getPeer();
-        else succNode = fingerTable[i];
 
-        /* TODO USE THIS EVENTUALLY
         if(i == fingerTable.length) {
             if (Peer.predNode.getNodeId().equals(oldSuccId)) {
                 succNode = Peer.getPeer();
@@ -437,7 +433,6 @@ public class Peer extends Node implements PeerInterface{
             }
         }
         else succNode = fingerTable[i];
-        */
 
         for(int j = 0; j < fingerTable.length; j++){
             if(fingerTable[j].getNodeId().equals(oldSuccId) ){
