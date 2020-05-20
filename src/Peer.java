@@ -826,18 +826,4 @@ public class Peer extends Node implements PeerInterface{
         else System.out.println("PRED - null");
         System.out.println(" ");
     }
-
-    public void printFingerTable(){
-
-        System.out.println("\nPrinting Finger Table...");
-        for(int i=0; i < fingerTable.length; i++){
-            System.out.println(" - F["+i+"] - " +fingerTable[i].getNodeId());
-        }
-
-        System.out.println("SUCC - "+succNode.getNodeId());
-        if(predNode != null)
-            System.out.println("PRED - "+predNode.getNodeId());
-        else System.out.println("PRED - null");
-        System.out.println(" ");
-    }
 }

@@ -202,9 +202,9 @@ public class MessageFactory {
     //PRED <SenderId> <PredId> <PredAddress> <PredPort>
     public byte[] predMsg(BigInteger msgId,BigInteger predId, String predAddress, int predPort) {
 
-        this.messageString = "PRED " + msgId+" "+predId+" "+predAddress+" "+predPort+ " \r\n\r\n";
+        this.messageString = "PRED " + msgId+" "+predId+" "+predAddress+" "+predPort;
 
-        String request = this.messageString;
+        String request = this.messageString+ " \r\n\r\n";
         byte[] header = request.getBytes();
         byte[] replyTest = new byte[header.length];
         System.arraycopy(header,0,replyTest,0,header.length);
