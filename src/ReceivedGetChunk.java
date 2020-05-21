@@ -27,7 +27,7 @@ public class ReceivedGetChunk implements Runnable {
         byte msg[] = messageFactory.chunkMsg(this.senderAddress, this.senderPort, this.fileId, this.chunkNo, chunk.getContent());
         String chunkKey = this.fileId+"-"+this.chunkNo;
         if (!Peer.getStorage().getRestoreChunks().containsKey(chunkKey)) {
-            new Thread(new SendMessagesManager(msg)).start();
+            Peer.getThreadExecutor().execute(new SendMessagesManager(msg, this.senderAddress, this.senderPort));
         }
     }
 }
