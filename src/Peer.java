@@ -604,7 +604,7 @@ public class Peer extends Node implements PeerInterface, java.io.Serializable{
                             msg.printSentMessage();
                         }
                     }
-                    else return "Chunk was not backed up previously";
+                    else return "Chunk was not backed up previously";*/
                 }
 
                 //TODO check - blocks here
