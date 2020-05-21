@@ -14,7 +14,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
-public class Peer extends Node implements PeerInterface{
+public class Peer extends Node implements PeerInterface, java.io.Serializable{
 
     private static int m = 160;
     private static int delay = 5;
@@ -153,7 +153,7 @@ public class Peer extends Node implements PeerInterface{
         System.out.println("Started peer");
 
         //Establish RMI communication between TestApp and Peer
-        //establishRMICommunication(peer);
+        establishRMICommunication(peer);
 
         //Initiate or load storage for initiator peer
         if (!loadPeerStorage()) {
@@ -202,6 +202,10 @@ public class Peer extends Node implements PeerInterface{
 
     public static ScheduledThreadPoolExecutor getThreadExecutor() {
         return threadExecutor;
+    }
+
+    public Node[] getFingerTable() {
+        return fingerTable;
     }
 
     /////////////////////////////////
@@ -572,7 +576,7 @@ public class Peer extends Node implements PeerInterface{
 
         while(chunkIterator.hasNext()) {
             Chunk chunk = chunkIterator.next();
-            byte msg[] = messageFactory.putChunkMsg(chunk, replication_degree);
+            byte msg[] = messageFactory.putChunkMsg(Peer.getPeer().getAddress(), Peer.getPeer().getPort(), chunk, replication_degree);
 
             for (int i = 0; i < chunk.getDesired_replication_degree(); i++) {
                 //TODO check this
@@ -803,9 +807,11 @@ public class Peer extends Node implements PeerInterface{
 
         System.out.println("\nPrinting Finger Table...");
 
-        for(int i=0; i < fingerTable.length; i++){
+        /*for(int i=0; i < fingerTable.length; i++){
             System.out.println(" - F["+i+"] - " +fingerTable[i].getNodeId());
-        }
+
+        }*/
+
         //System.out.println(" - F[0] - " +fingerTable[0].getNodeId());
         System.out.println("SUCC - "+succNode.getNodeId());
         if(predNode != null)

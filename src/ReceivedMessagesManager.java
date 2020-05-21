@@ -21,20 +21,17 @@ public class ReceivedMessagesManager implements Runnable {
 
         //Read from connection
         try {
-            /*
-            DataInputStream dataInputStream = new DataInputStream(sslSocket.getInputStream());
-            byte[] request = dataInputStream.readAllBytes();
-            */
+            byte[] request = sslSocket.getInputStream().readAllBytes();
+            //DataInputStream dataInputStream = new DataInputStream(sslSocket.getInputStream());
 
-            BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(this.sslSocket.getInputStream()));
+            parseMsg(request);
+
+            System.out.println(header[0]);
+            /*BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(this.sslSocket.getInputStream()));
 
             //TODO read byte[] instead of String
             String request = bufferedReader.readLine().trim();
-            String[] header = request.split(" ");
-
-            //System.out.println("##################################");
-            //System.out.println("##      Received message:       ##");
-            //System.out.println("##################################");
+            String[] header = request.split(" ");*/
 
             //Manage subProtocol
             String subProtocol = header[0];
@@ -44,7 +41,9 @@ public class ReceivedMessagesManager implements Runnable {
                     String fileId = header[1];
                     int chunkNo = Integer.parseInt(header[2]);
                     int repDeg = Integer.parseInt(header[3]);
-                    managePutChunk(fileId, chunkNo, repDeg, body);
+                    String address = header[4];
+                    int port = Integer.parseInt(header[5]);
+                    managePutChunk(fileId, chunkNo, repDeg, body, address, port);
                     break;
                 }
                 case "STORED": {
@@ -160,11 +159,11 @@ public class ReceivedMessagesManager implements Runnable {
     /// BACKUP PROTOCOL MESSAGES ///
     ////////////////////////////////
 
-    private void managePutChunk(String fileId, int chunkNo, int repDeg, byte[] body) {
-        System.out.printf("PUTCHUNK %s %d %d\n", fileId, chunkNo, repDeg);
+    private void managePutChunk(String fileId, int chunkNo, int repDeg, byte[] body, String senderAddress, int senderPort) {
+        System.out.printf("PUTCHUNK %s %d %d %s %d\n", fileId, chunkNo, repDeg, senderAddress, senderPort);
         Random random = new Random();
         int random_value = random.nextInt(401);
-        ReceivedPutChunk receivedPutChunk = new ReceivedPutChunk(fileId, chunkNo, repDeg, body);
+        ReceivedPutChunk receivedPutChunk = new ReceivedPutChunk(fileId, chunkNo, repDeg, body, senderAddress, senderPort);
         Peer.getThreadExecutor().schedule(receivedPutChunk, random_value, TimeUnit.MILLISECONDS);
     }
 

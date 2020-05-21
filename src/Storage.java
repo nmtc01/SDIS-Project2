@@ -15,7 +15,6 @@ public class Storage implements java.io.Serializable {
     private ArrayList<Chunk> storedChunks = new ArrayList<>();
     private ConcurrentHashMap<String, byte[]> restoreChunks = new ConcurrentHashMap<>();
     private ConcurrentHashMap<String, Integer> chunks_current_degrees = new ConcurrentHashMap<>();
-    //TODO check
     private ConcurrentHashMap<String, ArrayList<Peer>> peers_with_chunks = new ConcurrentHashMap<>();
     private ArrayList<FileInfo> deletedFiles = new ArrayList<>();
     private double total_space;
@@ -36,7 +35,7 @@ public class Storage implements java.io.Serializable {
 
     private void createPeerDirectory() {
         String root = System.getProperty("user.dir");
-        String filepathUnix = "/PeerProtocol";
+        String filepathUnix = "/PeerProtocol/Peer"+Peer.getPeer().getNodeId();
         String pathUnix = root + filepathUnix;
 
         File tmpUnix = new File(pathUnix);
