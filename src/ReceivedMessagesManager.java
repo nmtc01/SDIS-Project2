@@ -21,17 +21,18 @@ public class ReceivedMessagesManager implements Runnable {
 
         //Read from connection
         try {
-            byte[] request = sslSocket.getInputStream().readAllBytes();
+            //byte[] request = sslSocket.getInputStream().readAllBytes();
             //DataInputStream dataInputStream = new DataInputStream(sslSocket.getInputStream());
 
-            parseMsg(request);
+            //parseMsg(request);
 
-            System.out.println(header[0]);
-            /*BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(this.sslSocket.getInputStream()));
+            //System.out.println(header[0]);
+
+            BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(this.sslSocket.getInputStream()));
 
             //TODO read byte[] instead of String
             String request = bufferedReader.readLine().trim();
-            String[] header = request.split(" ");*/
+            String[] header = request.split(" ");
 
             //Manage subProtocol
             String subProtocol = header[0];
