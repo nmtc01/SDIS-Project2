@@ -28,14 +28,14 @@ public class ReceivedPutChunk implements Runnable {
 
             if (!contains(peerStorage)) {
                 if (hasSpace(peerStorage)) {
-                    byte msg[] = messageFactory.storedMsg(Peer.getPeer().getAddress(), Peer.getPeer().getPort(), this.fileId, this.chunkNo);
+                    Message msg = messageFactory.storedMsg(Peer.getPeer().getAddress(), Peer.getPeer().getPort(), this.fileId, this.chunkNo);
                     Peer.getThreadExecutor().execute(new SendMessagesManager(msg, this.senderAddress, this.senderPort));
                     System.out.printf("Sent message: %s\n", messageFactory.getMessageString());
                 }
 
             }
             else {
-                byte msg[] = messageFactory.putChunkMsg(Peer.getPeer().getAddress(), Peer.getPeer().getPort(), this.chunk, this.repDeg);
+                Message msg = messageFactory.putChunkMsg(Peer.getPeer().getAddress(), Peer.getPeer().getPort(), this.chunk, this.repDeg);
 
                 Node succ = Peer.getPeer().getFingerTable()[0];
                 Peer.getThreadExecutor().execute(new SendMessagesManager(msg, succ.getAddress(), succ.getPort()));

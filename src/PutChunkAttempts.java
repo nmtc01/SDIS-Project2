@@ -4,11 +4,11 @@ public class PutChunkAttempts implements Runnable {
     private int time;
     private int attempts;
     private int counter;
-    private byte[] message;
+    private Message message;
     private String chunkKey;
     private int desiredRepDeg;
 
-    public PutChunkAttempts(int time, int attempts, byte[] message, String chunkKey, int repDeg) {
+    public PutChunkAttempts(int time, int attempts, Message message, String chunkKey, int repDeg) {
         this.time = time;
         this.attempts = attempts;
         this.message = message;

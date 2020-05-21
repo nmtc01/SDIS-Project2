@@ -61,7 +61,7 @@ public class Node {
 
         //Create socket
         MessageFactory messageFactory = new MessageFactory();
-        byte[] message = messageFactory.findSuccMsg(msgId,ip,port,id);
+        Message message = messageFactory.findSuccMsg(msgId,ip,port,id);
         Peer.getThreadExecutor().execute(new SendMessagesManager(message, this.address, this.port));
 
         return null;
@@ -71,7 +71,7 @@ public class Node {
         //Create socket
 
         MessageFactory messageFactory = new MessageFactory();
-        byte[] message = messageFactory.findPredMsg(msgId,address,port);
+        Message message = messageFactory.findPredMsg(msgId,address,port);
         Peer.getThreadExecutor().execute(new SendMessagesManager(message, this.address, this.port));
 
         return null;
@@ -81,7 +81,7 @@ public class Node {
 
         //Create socket
         MessageFactory messageFactory = new MessageFactory();
-        byte[] message = messageFactory.findSuccFingerMsg(msgId,ip,port,id,fingerId);
+        Message message = messageFactory.findSuccFingerMsg(msgId,ip,port,id,fingerId);
         Peer.getThreadExecutor().execute(new SendMessagesManager(message, this.address, this.port));
 
         return null;
@@ -91,7 +91,7 @@ public class Node {
 
         //Create socket
         MessageFactory messageFactory = new MessageFactory();
-        byte[] message = messageFactory.notifyMsg(msgId,node.getAddress(),node.getPort());
+        Message message = messageFactory.notifyMsg(msgId,node.getAddress(),node.getPort());
         Peer.getThreadExecutor().execute(new SendMessagesManager(message, this.address, this.port));
 
         return null;

@@ -512,27 +512,25 @@ public class Peer extends Node implements PeerInterface, java.io.Serializable{
             predecessor = nil
          */
 
-        DataOutputStream dos;
-        byte[] msg = ("test").getBytes();
+        ObjectOutputStream dos;
+        String[] test = new String[1];
+        test[0] = "test";
+        Message msg = new Message(test);
 
-        //System.out.println("TEST PRED");
         //Create socket
-        //TODO check this
         try {
             SSLSocket sslSocket = (SSLSocket) SSLSocketFactory.getDefault().createSocket(predNode.getAddress(), predNode.getPort());
 
-            dos = new DataOutputStream(sslSocket.getOutputStream());
+            dos = new ObjectOutputStream(sslSocket.getOutputStream());
 
             dos.flush();
-            dos.write(msg);
+            dos.writeObject(msg);
 
             try {
                 Thread.sleep(1000);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
-
-            //String reply = in.readLine();
 
             sslSocket.close();
 
@@ -576,7 +574,7 @@ public class Peer extends Node implements PeerInterface, java.io.Serializable{
 
         while(chunkIterator.hasNext()) {
             Chunk chunk = chunkIterator.next();
-            byte msg[] = messageFactory.putChunkMsg(Peer.getPeer().getAddress(), Peer.getPeer().getPort(), chunk, replication_degree);
+            Message msg = messageFactory.putChunkMsg(Peer.getPeer().getAddress(), Peer.getPeer().getPort(), chunk, replication_degree);
 
             for (int i = 0; i < chunk.getDesired_replication_degree(); i++) {
                 //TODO check this
@@ -618,7 +616,7 @@ public class Peer extends Node implements PeerInterface, java.io.Serializable{
                     Chunk chunk = chunkIterator.next();
                     //Prepare message to send
                     MessageFactory messageFactory = new MessageFactory();
-                    byte[] msg = messageFactory.getChunkMsg(Peer.getPeer().getAddress(), Peer.getPeer().getPort(), fileInfo.getFileId(), chunk.getChunk_no());
+                    Message msg = messageFactory.getChunkMsg(Peer.getPeer().getAddress(), Peer.getPeer().getPort(), fileInfo.getFileId(), chunk.getChunk_no());
 
                     // TODO Select destination peer, use random index instead of 0? - Check
                     String chunkKey = fileInfo.getFileId()+'-'+chunk.getChunk_no();
@@ -666,7 +664,7 @@ public class Peer extends Node implements PeerInterface, java.io.Serializable{
                     Chunk chunk = chunkIterator.next();
 
                     //Prepare message to send
-                    byte msg[] = messageFactory.deleteMsg(Peer.getPeer().getAddress(), Peer.getPeer().getPort(), chunk);
+                    Message msg = messageFactory.deleteMsg(Peer.getPeer().getAddress(), Peer.getPeer().getPort(), chunk);
 
                     for (int j = 0; j < chunk.getDesired_replication_degree(); j++) {
                         Node destNode = fingerTable[j];
@@ -705,7 +703,7 @@ public class Peer extends Node implements PeerInterface, java.io.Serializable{
                 if (deletedSpace < tmpSpace || max_space == 0) {
                     deletedSpace += chunk.getChunk_size();
 
-                    byte msg[] = messageFactory.reclaimMsg(Peer.getPeer().getAddress(), Peer.getPeer().getPort(), chunk);
+                    Message msg = messageFactory.reclaimMsg(Peer.getPeer().getAddress(), Peer.getPeer().getPort(), chunk);
 
                     //TODO send reclaim message to every peer on the system?
                     for (int j = 0; j < fingerTable.length; j++) {
@@ -723,7 +721,7 @@ public class Peer extends Node implements PeerInterface, java.io.Serializable{
 
                     // TODO: Select destination peer
                     if (this.storage.getChunkCurrentDegree(chunkKey) < chunk.getDesired_replication_degree()) {
-                        byte msg2[] = messageFactory.putChunkMsg(Peer.getPeer().getAddress(), Peer.getPeer().getPort(), chunk, chunk.getDesired_replication_degree());
+                        Message msg2 = messageFactory.putChunkMsg(Peer.getPeer().getAddress(), Peer.getPeer().getPort(), chunk, chunk.getDesired_replication_degree());
                         Random random = new Random();
                         int random_value = random.nextInt(401);
 

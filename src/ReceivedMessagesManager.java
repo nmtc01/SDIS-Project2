@@ -22,23 +22,11 @@ public class ReceivedMessagesManager implements Runnable {
 
         //Read from connection
         try {
-            ByteBuffer byteBuffer = ByteBuffer.wrap(new byte[65000]);
-            //sslSocket.getInputStream().readAllBytes();
-
-            //System.out.println(header[0]);
-
-            /*BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(this.sslSocket.getInputStream()));
-
-            //TODO read byte[] instead of String
-            String request = bufferedReader.readLine().trim();
-            String[] header = request.split(" ");
-            parseMsg(request);*/
-
-            ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(byteBuffer.array(), 0, byteBuffer.position());
-            ObjectInputStream objectInputStream = new ObjectInputStream(byteArrayInputStream);
-            Request request = (Request)objectInputStream.readObject();
-            this.header = request.getHeader();
-            this.body = request.getBody();
+            //Read object
+            ObjectInputStream objectInputStream = new ObjectInputStream(sslSocket.getInputStream());
+            Message message = (Message)objectInputStream.readObject();
+            this.header = message.getHeader();
+            this.body = message.getBody();
 
             //Manage subProtocol
             String subProtocol = header[0];
@@ -159,18 +147,6 @@ public class ReceivedMessagesManager implements Runnable {
         }
 
     }
-
-
-    public void parseMsg(byte[] data) {
-        int index;
-        for (index = 0; index < data.length; index++) {
-            if (data[index] == 0xD && data[index+1] == 0xA && data[index+2] == 0xD && data[index+3] == 0xA)
-                break;
-        }
-        String headerStr = new String(Arrays.copyOfRange(data, 0, index));
-        this.header = headerStr.split(" ");
-        this.body = Arrays.copyOfRange(data, index+4, data.length);
-    }
     
     ////////////////////////////////
     /// BACKUP PROTOCOL MESSAGES ///
@@ -234,7 +210,7 @@ public class ReceivedMessagesManager implements Runnable {
         if (node != null) {
 
             MessageFactory messageFactory = new MessageFactory();
-            byte[] message = messageFactory.replySuccMsg(Peer.getPeer().getNodeId(),node.getNodeId(),node.getAddress(),node.getPort());
+            Message message = messageFactory.replySuccMsg(Peer.getPeer().getNodeId(),node.getNodeId(),node.getAddress(),node.getPort());
 
             SendMessagesManager sendMessagesManager = new SendMessagesManager(message, address, port);
 
@@ -262,7 +238,7 @@ public class ReceivedMessagesManager implements Runnable {
         if (node != null) {
 
             MessageFactory messageFactory = new MessageFactory();
-            byte[] message = messageFactory.replySuccFingerMsg(Peer.getPeer().getNodeId(),node.getNodeId(),node.getAddress(),node.getPort(),fingerId);
+            Message message = messageFactory.replySuccFingerMsg(Peer.getPeer().getNodeId(),node.getNodeId(),node.getAddress(),node.getPort(),fingerId);
 
             SendMessagesManager sendMessagesManager = new SendMessagesManager(message, address, port);
 
@@ -299,7 +275,7 @@ public class ReceivedMessagesManager implements Runnable {
         Node node = Peer.findPred();
 
         MessageFactory messageFactory = new MessageFactory();
-        byte[] message = messageFactory.predMsg(Peer.getPeer().getNodeId(),node.getNodeId(),node.getAddress(),node.getPort());
+        Message message = messageFactory.predMsg(Peer.getPeer().getNodeId(),node.getNodeId(),node.getAddress(),node.getPort());
 
         SendMessagesManager sendMessagesManager = new SendMessagesManager(message, address, port);
 
