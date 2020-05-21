@@ -675,13 +675,6 @@ public class Peer extends Node implements PeerInterface, java.io.Serializable{
 
                     // Send only to successor => successor retransmits
                     Peer.getThreadExecutor().execute(new SendMessagesManager(msg, succNode.getAddress(), succNode.getPort()));
-
-                    /*for (int j = 0; j < chunk.getDesired_replication_degree(); j++) {
-                        Node destNode = fingerTable[j];
-
-                        //Send message
-                        Peer.getThreadExecutor().execute(new SendMessagesManager(msg, destNode.getAddress(), destNode.getPort()));
-                    }*/
                 }
                 //Delete file
                 storage.deleteFile(fileInfo);
