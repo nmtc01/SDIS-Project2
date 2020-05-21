@@ -208,10 +208,21 @@ public class ReceivedMessagesManager implements Runnable {
 
     private void manageDelete(String fileId, String senderAddress, int senderPort) {
         System.out.printf("DELETE %s %s %d\n", fileId, senderAddress, senderPort);
+
+        if ( !senderAddress.equals(Peer.getPeer().getAddress()) || senderPort != Peer.getPeer().getPort()) {
+            MessageFactory messageFactory = new MessageFactory();
+            byte[] msg = messageFactory.deleteMsg(fileId, senderAddress, senderPort);
+            Peer.getThreadExecutor().execute(new SendMessagesManager(msg, Peer.succNode.getAddress(), Peer.succNode.getPort()));
+        }
+
+        Storage peerStorage = Peer.getStorage();
+        peerStorage.deleteChunk(fileId);
+
+        /* Unnecessary Thread
         Random random = new Random();
         int random_value = random.nextInt(401);
         ReceivedDelete receivedDelete = new ReceivedDelete(fileId, senderAddress, senderPort);
-        Peer.getThreadExecutor().schedule(receivedDelete, random_value, TimeUnit.MILLISECONDS);
+        Peer.getThreadExecutor().schedule(receivedDelete, random_value, TimeUnit.MILLISECONDS);*/
     }
 
     //////////////////////
