@@ -29,26 +29,10 @@ public class MessageFactory {
         return putchunkMsg;
     }
 
-    //TODO delete this
-    public byte[] putChunkMsg(Chunk chunk, Integer replication_degree) {
-
-        String fileId = chunk.getFile_id();
-        int chunkNo = chunk.getChunk_no();
-        this.messageString = "PUTCHUNK" + " " + fileId + " " + chunkNo + " " + replication_degree;
-        String headerTerms = this.messageString + " \r\n\r\n";
-        byte[] header = headerTerms.getBytes();
-        byte[] content = chunk.getContent();
-        byte[] putchunkMsg = new byte[header.length + content.length];
-        System.arraycopy(header, 0, putchunkMsg, 0, header.length);
-        System.arraycopy(content, 0, putchunkMsg, header.length, content.length);
-
-        return putchunkMsg;
-    }
-
     //STORED <FileId> <ChunkNo> <CRLF><CRLF>
-    public byte[] storedMsg(String fileId, int chunkNo) {
+    public byte[] storedMsg(String senderAddress, int senderPort, String fileId, int chunkNo) {
 
-        this.messageString = "STORED" + " " + fileId + " " + chunkNo;
+        this.messageString = "STORED" + " " + fileId + " " + chunkNo + " " + senderAddress + " " + senderPort;
         String headerTerms = this.messageString + " \r\n\r\n";
         byte[] header = headerTerms.getBytes();
         byte[] storedMsg = new byte[header.length];
@@ -58,9 +42,9 @@ public class MessageFactory {
     }
 
     //GETCHUNK <FileId> <ChunkNo> <CRLF><CRLF>
-    public byte[] getChunkMsg(String fileId, int chunkNo) {
+    public byte[] getChunkMsg(String senderAddress, int senderPort, String fileId, int chunkNo) {
 
-        this.messageString = "GETCHUNK" + " " + fileId + " " + chunkNo;
+        this.messageString = "GETCHUNK" + " " + fileId + " " + chunkNo + " " + senderAddress + " " + senderPort;
         String headerTerms = this.messageString + " \r\n\r\n";
         byte[] header = headerTerms.getBytes();
         byte[] getChunkMsg = new byte[header.length + header.length];
@@ -70,8 +54,8 @@ public class MessageFactory {
     }
 
     //CHUNK <FileId> <ChunkNo> <CRLF><CRLF><Body>
-    public byte[] chunkMsg(String fileId, int chunkNo, byte[] body) {
-        this.messageString = "CHUNK" + " " + fileId + " " + chunkNo;
+    public byte[] chunkMsg(String senderAddress, int senderPort, String fileId, int chunkNo, byte[] body) {
+        this.messageString = "CHUNK" + " " + fileId + " " + chunkNo + " " + senderAddress + " " + senderPort;
         String headerTerms = this.messageString + " \r\n\r\n";
         byte[] header = headerTerms.getBytes();
         byte[] chunkMsg = new byte[header.length + body.length];
@@ -82,10 +66,10 @@ public class MessageFactory {
     }
 
     //DELETE <FileId> <CRLF><CRLF>
-    public byte[] deleteMsg(Chunk chunk) {
+    public byte[] deleteMsg(String senderAddress, int senderPort, Chunk chunk) {
 
         String fileId = chunk.getFile_id();
-        this.messageString = "DELETE" + " " + fileId;
+        this.messageString = "DELETE" + " " + fileId + " " + senderAddress + " " + senderPort;
         String deleteString = this.messageString + " \r\n\r\n";
         byte[] header = deleteString.getBytes();
         byte[] deleteMsg = new byte[header.length];
@@ -95,11 +79,11 @@ public class MessageFactory {
     }
 
     //REMOVED <FileId> <ChunkNo> <CRLF><CRLF>
-    public byte[] reclaimMsg(Chunk chunk) {
+    public byte[] reclaimMsg(String senderAddress, int senderPort, Chunk chunk) {
 
         String fileId = chunk.getFile_id();
         int chunkNo = chunk.getChunk_no();
-        this.messageString = "REMOVED" + " " + fileId + " " + chunkNo;
+        this.messageString = "REMOVED" + " " + fileId + " " + chunkNo + " " + senderAddress + " " + senderPort;
         String reclaimString = this.messageString + " \r\n\r\n";
         byte[] header = reclaimString.getBytes();
         byte[] reclaimMsg = new byte[header.length];

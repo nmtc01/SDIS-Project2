@@ -1,10 +1,14 @@
 public class ReceivedGetChunk implements Runnable {
     private String fileId;
     private int chunkNo;
+    private String senderAddress;
+    private int senderPort;
 
-    public ReceivedGetChunk(String fileId, int chunkNo) {
+    public ReceivedGetChunk(String fileId, int chunkNo, String senderAddress, int senderPort) {
         this.fileId = fileId;
         this.chunkNo = chunkNo;
+        this.senderAddress = senderAddress;
+        this.senderPort = senderPort;
     }
 
     @Override
@@ -20,7 +24,7 @@ public class ReceivedGetChunk implements Runnable {
 
     public void sendChunk(Chunk chunk) {
         MessageFactory messageFactory = new MessageFactory();
-        byte msg[] = messageFactory.chunkMsg(this.fileId, this.chunkNo, chunk.getContent());
+        byte msg[] = messageFactory.chunkMsg(this.senderAddress, this.senderPort, this.fileId, this.chunkNo, chunk.getContent());
         String chunkKey = this.fileId+"-"+this.chunkNo;
         if (!Peer.getStorage().getRestoreChunks().containsKey(chunkKey)) {
             new Thread(new SendMessagesManager(msg)).start();

@@ -49,30 +49,40 @@ public class ReceivedMessagesManager implements Runnable {
                 case "STORED": {
                     String fileId = header[1];
                     int chunkNo = Integer.parseInt(header[2]);
-                    manageStored(fileId, chunkNo);
+                    String address = header[3];
+                    int port = Integer.parseInt(header[4]);
+                    manageStored(fileId, chunkNo, address, port);
                     break;
                 }
                 case "DELETE": {
                     String fileId = header[1];
-                    manageDelete(fileId);
+                    String address = header[2];
+                    int port = Integer.parseInt(header[3]);
+                    manageDelete(fileId, address, port);
                     break;
                 }
                 case "GETCHUNK": {
                     String fileId = header[1];
                     int chunkNo = Integer.parseInt(header[2]);
-                    manageGetChunk(fileId, chunkNo);
+                    String address = header[3];
+                    int port = Integer.parseInt(header[4]);
+                    manageGetChunk(fileId, chunkNo, address, port);
                     break;
                 }
                 case "CHUNK": {
                     String fileId = header[1];
                     int chunkNo = Integer.parseInt(header[2]);
-                    manageChunk(fileId, chunkNo, body);
+                    String address = header[3];
+                    int port = Integer.parseInt(header[4]);
+                    manageChunk(fileId, chunkNo, body, address, port);
                     break;
                 }
                 case "REMOVED": {
                     String fileId = header[1];
                     int chunkNo = Integer.parseInt(header[2]);
-                    manageRemoved(fileId, chunkNo);
+                    String address = header[3];
+                    int port = Integer.parseInt(header[4]);
+                    manageRemoved(fileId, chunkNo, address, port);
                     break;
                 }
                 case "FINDSUCC": {
@@ -167,40 +177,40 @@ public class ReceivedMessagesManager implements Runnable {
         Peer.getThreadExecutor().schedule(receivedPutChunk, random_value, TimeUnit.MILLISECONDS);
     }
 
-    private void manageStored(String fileId, int chunkNo) {
-        System.out.printf("STORED %s %d\n", fileId, chunkNo);
+    private void manageStored(String fileId, int chunkNo, String senderAddress, int senderPort) {
+        System.out.printf("STORED %s %d %s %d\n", fileId, chunkNo, senderAddress, senderPort);
         Storage peerStorage = Peer.getStorage();
         String chunkKey = fileId+"-"+chunkNo;
         peerStorage.incrementChunkOccurences(chunkKey);
     }
 
-    private void manageRemoved(String fileId, int chunkNo) {
-        System.out.printf("REMOVED %s %d\n", fileId, chunkNo);
+    private void manageRemoved(String fileId, int chunkNo, String senderAddress, int senderPort) {
+        System.out.printf("REMOVED %s %d %s %d\n", fileId, chunkNo, senderAddress, senderPort);
         String chunkKey = fileId +"-"+chunkNo;
         Storage peerStorage = Peer.getStorage();
         peerStorage.decrementChunkOccurences(chunkKey);
         //TODO missing removing peer from peers_with_chunks on storage
     }
 
-    private void manageGetChunk(String fileId, int chunkNo) {
-        System.out.printf("GETCHUNK %s %d\n", fileId, chunkNo);
+    private void manageGetChunk(String fileId, int chunkNo, String senderAddress, int senderPort) {
+        System.out.printf("GETCHUNK %s %d %s %d\n", fileId, chunkNo, senderAddress, senderPort);
         Random random = new Random();
         int random_value = random.nextInt(401);
-        ReceivedGetChunk receivedGetChunk = new ReceivedGetChunk(fileId, chunkNo);
+        ReceivedGetChunk receivedGetChunk = new ReceivedGetChunk(fileId, chunkNo, senderAddress, senderPort);
         Peer.getThreadExecutor().schedule(receivedGetChunk, random_value, TimeUnit.MILLISECONDS);
     }
 
-    private void manageChunk(String fileId, int chunkNo, byte[] body) {
-        System.out.printf("CHUNK %s %d\n", fileId, chunkNo);
+    private void manageChunk(String fileId, int chunkNo, byte[] body, String senderAddress, int senderPort) {
+        System.out.printf("CHUNK %s %d %s %d\n", fileId, chunkNo, senderAddress, senderPort);
         String chunkKey = fileId+"-"+chunkNo;
         Peer.getStorage().getRestoreChunks().putIfAbsent(chunkKey, body);
     }
 
-    private void manageDelete(String fileId) {
-        System.out.printf("DELETE %s\n", fileId);
+    private void manageDelete(String fileId, String senderAddress, int senderPort) {
+        System.out.printf("DELETE %s %s %d\n", fileId, senderAddress, senderPort);
         Random random = new Random();
         int random_value = random.nextInt(401);
-        ReceivedDelete receivedDelete = new ReceivedDelete(fileId);
+        ReceivedDelete receivedDelete = new ReceivedDelete(fileId, senderAddress, senderPort);
         Peer.getThreadExecutor().schedule(receivedDelete, random_value, TimeUnit.MILLISECONDS);
     }
 
