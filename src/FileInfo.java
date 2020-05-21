@@ -1,7 +1,6 @@
-import java.io.BufferedInputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.UnsupportedEncodingException;
+import java.io.*;
+import java.nio.ByteBuffer;
+import java.nio.channels.FileChannel;
 import java.security.NoSuchAlgorithmException;
 import java.util.*;
 
@@ -53,6 +52,7 @@ public class FileInfo implements java.io.Serializable {
         byte[] content = new byte[chunk_size];
         int chunck_nr = 0;
 
+        /* OLD VERSION
         try
         {
             FileInputStream fileIn = new FileInputStream(this.file);
@@ -72,6 +72,41 @@ public class FileInfo implements java.io.Serializable {
             System.err.format("Exception occurred trying to read '%s'.", file.getName());
             e.printStackTrace();
         }
+        */
+
+        //USING JAVA NIO
+        FileInputStream fis = null;
+        try {
+           fis = new FileInputStream(this.file);
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
+
+        FileChannel fc = fis.getChannel();
+        ByteBuffer bb = ByteBuffer.allocate(chunk_size);
+
+        int nr_bytes;
+        try{
+            while( (nr_bytes = fc.read(bb)) > 0 ){
+
+                byte[] info = Arrays.copyOf(content, nr_bytes);
+
+                bb.flip();
+                bb.get(info);
+                bb.clear();
+
+                Chunk chunk = new Chunk(this.fileId,chunck_nr ,nr_bytes, replication_degree,info);
+                chunks.add(chunk);
+                chunck_nr++;
+            }
+
+            fis.close();
+        }catch (IOException e){
+            e.printStackTrace();
+        }
+
+
+
     }
 
     public Set<Chunk> getChunks() {
