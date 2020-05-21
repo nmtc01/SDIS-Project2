@@ -99,6 +99,17 @@ public class MessageFactory {
         return deleteMsg;
     }
 
+    //DELETE <FileId> <CRLF><CRLF>
+    public byte[] deleteMsg(String fileId, String senderAddress, int senderPort) {
+        this.messageString = "DELETE" + " " + fileId + " " + senderAddress + " " + senderPort;
+        String deleteString = this.messageString + " \r\n\r\n";
+        byte[] header = deleteString.getBytes();
+        byte[] deleteMsg = new byte[header.length];
+        System.arraycopy(header, 0, deleteMsg, 0, header.length);
+
+        return deleteMsg;
+    }
+
     //REMOVED <FileId> <ChunkNo> <CRLF><CRLF>
     public Message reclaimMsg(String senderAddress, int senderPort, Chunk chunk) {
 
