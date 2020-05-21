@@ -6,12 +6,16 @@ public class ReceivedPutChunk implements Runnable {
     private int repDeg;
     private byte[] body;
     private Chunk chunk;
+    private String senderAddress;
+    private int senderPort;
 
-    public ReceivedPutChunk(String fileId, int chunkNo, int repDeg, byte[] body) {
+    public ReceivedPutChunk(String fileId, int chunkNo, int repDeg, byte[] body, String senderAddress, int senderPort) {
         this.fileId = fileId;
         this.chunkNo = chunkNo;
         this.repDeg = repDeg;
         this.body = body;
+        this.senderAddress = senderAddress;
+        this.senderPort = senderPort;
     }
 
     @Override
@@ -23,10 +27,9 @@ public class ReceivedPutChunk implements Runnable {
         if (peerStorage.getChunkCurrentDegree(chunkKey) < this.repDeg) {
 
             if (!contains(peerStorage)) {
-
                 if (hasSpace(peerStorage)) {
                     byte msg[] = messageFactory.storedMsg(this.fileId, this.chunkNo);
-                    new Thread(new SendMessagesManager(msg)).start();
+                    Peer.getThreadExecutor().execute(new SendMessagesManager(msg, this.senderAddress, this.senderPort));
                     System.out.printf("Sent message: %s\n", messageFactory.getMessageString());
                 }
 
@@ -56,7 +59,7 @@ public class ReceivedPutChunk implements Runnable {
     }
 
     public boolean hasSpace(Storage storage) {
-        if (storage.getFreeSpace() > this.body.length) {
+        if (storage.getFreeSpace() >= this.body.length) {
             Chunk chunk = new Chunk(this.fileId, this.chunkNo, this.body.length, this.repDeg, this.body);
             storage.storeChunk(chunk);
             return true;

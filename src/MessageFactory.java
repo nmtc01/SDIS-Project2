@@ -14,6 +14,22 @@ public class MessageFactory {
     ////////////////////////////////
 
     //PUTCHUNK <FileId> <ChunkNo> <ReplicationDeg> <CRLF><CRLF><Body>
+    public byte[] putChunkMsg(String senderAddress, int senderPort, Chunk chunk, Integer replication_degree) {
+
+        String fileId = chunk.getFile_id();
+        int chunkNo = chunk.getChunk_no();
+        this.messageString = "PUTCHUNK" + " " + fileId + " " + chunkNo + " " + replication_degree + " " + senderAddress + " " + senderPort;
+        String headerTerms = this.messageString + " \r\n\r\n";
+        byte[] header = headerTerms.getBytes();
+        byte[] content = chunk.getContent();
+        byte[] putchunkMsg = new byte[header.length + content.length];
+        System.arraycopy(header, 0, putchunkMsg, 0, header.length);
+        System.arraycopy(content, 0, putchunkMsg, header.length, content.length);
+
+        return putchunkMsg;
+    }
+
+    //TODO delete this
     public byte[] putChunkMsg(Chunk chunk, Integer replication_degree) {
 
         String fileId = chunk.getFile_id();

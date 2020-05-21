@@ -1,5 +1,3 @@
-import javax.imageio.IIOException;
-
 public class SendMessagesManager implements Runnable {
     private byte[] message;
     private SSLConnection sslConnection;

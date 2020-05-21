@@ -4,9 +4,9 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
 public class Utility {
-    public static byte[] sha256(String string) throws NoSuchAlgorithmException, UnsupportedEncodingException {
+    public static byte[] sha1(String string) throws NoSuchAlgorithmException, UnsupportedEncodingException {
         byte[] id = string.getBytes("UTF-8");
-        MessageDigest md = MessageDigest.getInstance("SHA-256");
+        MessageDigest md = MessageDigest.getInstance("SHA-1");
 
         return md.digest(id);
     }
@@ -25,14 +25,4 @@ public class Utility {
         return sha256String.toString();
     }
 
-    public static Integer convertToInt(byte[] sha1){
-        if(sha1 == null){
-
-            System.out.println("failed to convert to int");
-            return null;
-        }
-
-        ByteBuffer bb= ByteBuffer.wrap(sha1);
-        return bb.getInt();
-    }
 }
