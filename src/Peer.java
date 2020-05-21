@@ -553,7 +553,10 @@ public class Peer extends Node implements PeerInterface, java.io.Serializable{
 
             for (int i = 0; i < chunk.getDesired_replication_degree(); i++) {
                 //TODO check this
-                Node destNode = fingerTable[i];
+                Node destNode;
+                if (i < fingerTable.length)
+                    destNode = fingerTable[i];
+                else destNode = fingerTable[0];
                 threadExecutor.execute(new SendMessagesManager(msg, destNode.getAddress(), destNode.getPort()));
 
                 try {
