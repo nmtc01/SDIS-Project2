@@ -1,7 +1,6 @@
-cd ../src
-javac *.java
-
 TASKKILL /IM rmiregistry.exe /F
-start rmiregistry.exe
+
+cd ../src
+rm *.class
 
 cd ../scripts
