@@ -1,6 +1,7 @@
 import javax.net.ssl.SSLSocket;
 import java.io.*;
 import java.math.BigInteger;
+import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
@@ -21,18 +22,23 @@ public class ReceivedMessagesManager implements Runnable {
 
         //Read from connection
         try {
-            //byte[] request = sslSocket.getInputStream().readAllBytes();
-            //DataInputStream dataInputStream = new DataInputStream(sslSocket.getInputStream());
-
-            //parseMsg(request);
+            ByteBuffer byteBuffer = ByteBuffer.wrap(new byte[65000]);
+            //sslSocket.getInputStream().readAllBytes();
 
             //System.out.println(header[0]);
 
-            BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(this.sslSocket.getInputStream()));
+            /*BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(this.sslSocket.getInputStream()));
 
             //TODO read byte[] instead of String
             String request = bufferedReader.readLine().trim();
             String[] header = request.split(" ");
+            parseMsg(request);*/
+
+            ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(byteBuffer.array(), 0, byteBuffer.position());
+            ObjectInputStream objectInputStream = new ObjectInputStream(byteArrayInputStream);
+            Request request = (Request)objectInputStream.readObject();
+            this.header = request.getHeader();
+            this.body = request.getBody();
 
             //Manage subProtocol
             String subProtocol = header[0];
@@ -148,7 +154,7 @@ public class ReceivedMessagesManager implements Runnable {
 
             sslSocket.close();
 
-        } catch (IOException e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
 
