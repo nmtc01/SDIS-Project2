@@ -239,4 +239,17 @@ public class MessageFactory {
 
         return predMsg;
     }
+
+    //CHECKPRED
+    public Message checkPredMsg() {
+        String[] header = new String[5];
+        header[0] = "CHECKPRED";
+
+        Message checkPredMsg = new Message(header);
+
+        this.messageString = "CHECKPRED";
+
+        return checkPredMsg;
+    }
+
 }

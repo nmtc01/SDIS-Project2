@@ -38,9 +38,15 @@ public class SSLConnection implements Runnable {
             sslSocket.close();
 
         } catch (IOException e) {
-            Peer.unlockStabilize();
-            System.out.println(Peer.latchStabilize.getCount());
-            e.printStackTrace();
+            if (msg.getHeader()[0].equals("CHECKPRED")) {
+                Peer.predNode = null;
+                System.out.println("Server - Failed to connect to predecessor");
+            }
+            else {
+                Peer.unlockStabilize();
+                System.out.println(Peer.latchStabilize.getCount());
+                e.printStackTrace();
+            }
         }
     }
 

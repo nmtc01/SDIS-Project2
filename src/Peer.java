@@ -512,35 +512,10 @@ public class Peer extends Node implements PeerInterface, java.io.Serializable{
             predecessor = nil
          */
 
-        ObjectOutputStream dos;
-        String[] test = new String[1];
-        test[0] = "test";
-        Message msg = new Message(test);
+        MessageFactory messageFactory = new MessageFactory();
+        Message msg = messageFactory.checkPredMsg();
 
-        //Create socket
-        try {
-            SSLSocket sslSocket = (SSLSocket) SSLSocketFactory.getDefault().createSocket(predNode.getAddress(), predNode.getPort());
-
-            dos = new ObjectOutputStream(sslSocket.getOutputStream());
-
-            dos.flush();
-            dos.writeObject(msg);
-
-            try {
-                Thread.sleep(1000);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-
-            sslSocket.close();
-
-        } catch (IOException e) {
-            e.printStackTrace();
-            predNode = null;
-            System.out.println("Failed to connect to predecessor");
-        }
-
-
+        Peer.getThreadExecutor().execute(new SendMessagesManager(msg, predNode.getAddress(), predNode.getPort()));
     }
 
     public BigInteger getFinger(int i){
