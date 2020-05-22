@@ -596,10 +596,6 @@ public class Peer extends Node implements PeerInterface, java.io.Serializable{
 
                     String chunkKey = fileInfo.getFileId()+'-'+chunk.getChunk_no();
                     if (Peer.getPeer().getStorage().getPeers_with_chunks().containsKey(chunkKey)) {
-                        //TODO option 1 send to peer 0
-                        //String[] destPeer = getStorage().getPeers_with_chunks().get(chunkKey).get(0);
-
-                        //TODO option 2 send to everyone
                         for (int j = 0; j < getStorage().getPeers_with_chunks().get(chunkKey).size(); j++) {
                             String[] destPeer = getStorage().getPeers_with_chunks().get(chunkKey).get(j);
 
@@ -807,3 +803,6 @@ public class Peer extends Node implements PeerInterface, java.io.Serializable{
         System.out.println(" ");
     }
 }
+
+
+//TODO check if protocols work fine with free space - if they are decrementing it
