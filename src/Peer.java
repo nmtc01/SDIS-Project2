@@ -594,14 +594,19 @@ public class Peer extends Node implements PeerInterface, java.io.Serializable{
                     MessageFactory messageFactory = new MessageFactory();
                     Message msg = messageFactory.getChunkMsg(Peer.getPeer().getAddress(), Peer.getPeer().getPort(), fileInfo.getFileId(), chunk.getChunk_no());
 
-                    // TODO Select destination peer, use random index instead of 0? - Check
                     String chunkKey = fileInfo.getFileId()+'-'+chunk.getChunk_no();
                     if (Peer.getPeer().getStorage().getPeers_with_chunks().containsKey(chunkKey)) {
-                        String[] destPeer = getStorage().getPeers_with_chunks().get(chunkKey).get(0);
+                        //TODO option 1 send to peer 0
+                        //String[] destPeer = getStorage().getPeers_with_chunks().get(chunkKey).get(0);
 
-                        //Send message
-                        Peer.getThreadExecutor().execute(new SendMessagesManager(msg, destPeer[0], Integer.parseInt(destPeer[1])));
-                        msg.printSentMessage();
+                        //TODO option 2 send to everyone
+                        for (int j = 0; j < getStorage().getPeers_with_chunks().get(chunkKey).size(); j++) {
+                            String[] destPeer = getStorage().getPeers_with_chunks().get(chunkKey).get(j);
+
+                            //Send message
+                            Peer.getThreadExecutor().execute(new SendMessagesManager(msg, destPeer[0], Integer.parseInt(destPeer[1])));
+                            msg.printSentMessage();
+                        }
                     }
                     else return "Chunk was not backed up previously";
                 }
