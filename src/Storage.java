@@ -16,16 +16,11 @@ public class Storage implements java.io.Serializable {
     private ConcurrentHashMap<String, byte[]> restoreChunks = new ConcurrentHashMap<>();
     private ConcurrentHashMap<String, Integer> chunks_current_degrees = new ConcurrentHashMap<>();
     private ConcurrentHashMap<String, ArrayList<String[]>> peers_with_chunks = new ConcurrentHashMap<>();
-    private ArrayList<FileInfo> deletedFiles = new ArrayList<>();
     private double total_space;
 
     public Storage() {
         this.free_space = 1000000000;
         createPeerDirectory();
-    }
-
-    public ArrayList<FileInfo> getDeletedFiles() {
-        return deletedFiles;
     }
 
     //TODO check
@@ -295,6 +290,11 @@ public class Storage implements java.io.Serializable {
                 }
             }
         }
+    }
+
+    public void remove_entry_peer_chunks(String chunkKey) {
+        if (this.peers_with_chunks.containsKey(chunkKey))
+            this.peers_with_chunks.remove(chunkKey);
     }
 
     public class ChunkKeyComparator implements Comparator<String> {

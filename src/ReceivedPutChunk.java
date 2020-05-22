@@ -35,7 +35,7 @@ public class ReceivedPutChunk implements Runnable {
 
             }
             else {
-                Message msg = messageFactory.putChunkMsg(Peer.getPeer().getAddress(), Peer.getPeer().getPort(), this.chunk, this.repDeg);
+                Message msg = messageFactory.putChunkMsg(this.senderAddress, this.senderPort, this.chunk, this.repDeg);
 
                 Node succ = Peer.getPeer().getFingerTable()[0];
                 Peer.getThreadExecutor().execute(new SendMessagesManager(msg, succ.getAddress(), succ.getPort()));

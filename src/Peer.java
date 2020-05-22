@@ -5,10 +5,7 @@ import java.math.BigInteger;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
-import java.util.Arrays;
-import java.util.Iterator;
-import java.util.Random;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
@@ -632,7 +629,6 @@ public class Peer extends Node implements PeerInterface, java.io.Serializable{
 
                 //Get previously backed up file
                 fileInfo = storage.getStoredFiles().get(i);
-                storage.getDeletedFiles().add(fileInfo);
 
                 //Get file chunks
                 Set<Chunk> chunks = fileInfo.getChunks();
@@ -646,12 +642,17 @@ public class Peer extends Node implements PeerInterface, java.io.Serializable{
                     //Prepare message to send
                     Message msg = messageFactory.deleteMsg(Peer.getPeer().getAddress(), Peer.getPeer().getPort(), chunk);
 
-                    for (int j = 0; j < chunk.getDesired_replication_degree(); j++) {
-                        Node destNode = fingerTable[j];
-
-                        //Send message
-                        Peer.getThreadExecutor().execute(new SendMessagesManager(msg, destNode.getAddress(), destNode.getPort()));
-                        msg.printSentMessage();
+                    String chunkKey = fileInfo.getFileId()+'-'+chunk.getChunk_no();
+                    if (Peer.getPeer().getStorage().getPeers_with_chunks().containsKey(chunkKey)) {
+                        ArrayList<String[]> peers_with_chunk = Peer.getPeer().getStorage().getPeers_with_chunks().get(chunkKey);
+                        for (int j = 0; j < peers_with_chunk.size(); j++) {
+                            String[] destNode = peers_with_chunk.get(j);
+                            //Send message
+                            Peer.getThreadExecutor().execute(new SendMessagesManager(msg, destNode[0], Integer.parseInt(destNode[1])));
+                            System.out.println("Para "+destNode[0]+":"+destNode[1]);
+                            msg.printSentMessage();
+                        }
+                        storage.remove_entry_peer_chunks(chunkKey);
                     }
                 }
                 //Delete file
