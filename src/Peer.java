@@ -598,7 +598,8 @@ public class Peer extends Node implements PeerInterface, java.io.Serializable{
 
                     // TODO Select destination peer, use random index instead of 0? - Check
                     String chunkKey = fileInfo.getFileId()+'-'+chunk.getChunk_no();
-                    if (getStorage().getPeers_with_chunks().containsKey(chunkKey)) {
+                    Utility.printPeersWithChunks(Peer.getPeer().getStorage().getPeers_with_chunks());
+                    if (Peer.getPeer().getStorage().getPeers_with_chunks().containsKey(chunkKey)) {
                         Peer destPeer = getStorage().getPeers_with_chunks().get(chunkKey).get(0);
 
                         //Send message

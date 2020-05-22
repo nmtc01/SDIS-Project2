@@ -144,7 +144,7 @@ public class Storage implements java.io.Serializable {
                 decrementChunkOccurences(chunk.getFile_id()+"-"+chunk.getChunk_no());
 
                 //TODO check
-                remove_peer_chunks(chunk.getFile_id()+"-"+chunk.getChunk_no(), Peer.getPeer());
+                remove_peer_chunks(chunk.getFile_id()+"-"+chunk.getChunk_no(), Peer.getPeer().getAddress(), Peer.getPeer().getPort());
             }
         }
         String fileFolder = directory.getPath() + "/file" + fileId;
@@ -241,20 +241,6 @@ public class Storage implements java.io.Serializable {
         this.free_space += free_space;
     }
 
-    //TODO not necessary I think, already one deleteChunk declared
-    /*public void deleteChunk(Chunk chunk) {
-        String file_path = directory.getPath() + "/file" + chunk.getFile_id() + "/chunk" + chunk.getChunk_no();
-        File file = new File(file_path);
-        file.delete();
-        for (int i = 0; i < this.storedChunks.size(); i++) {
-            if (this.storedChunks.get(i).getFile_id().equals(chunk.getFile_id()) && this.storedChunks.get(i).getChunk_no() == chunk.getChunk_no()) {
-                this.storedChunks.remove(i);
-                break;
-            }
-        }
-        decrementChunkOccurences(chunk.getFile_id()+"-"+chunk.getChunk_no());
-    }*/
-
     public void deleteFile(FileInfo fileInfo) {
         String file_directory = this.directory.getPath() + "/file" + fileInfo.getFileId();
         String file_path = file_directory + "/" + fileInfo.getFile().getName();
@@ -283,6 +269,19 @@ public class Storage implements java.io.Serializable {
     }
 
     //TODO check
+    public void add_peer_chunks(String chunkKey, String senderAddress, int senderPort) {
+        //TODO kinda wrong to do this
+        Peer peer = new Peer(senderAddress, senderPort);
+        if (this.peers_with_chunks.containsKey(chunkKey)) {
+            this.peers_with_chunks.get(chunkKey).add(peer);
+        }
+        else {
+            ArrayList<Peer> peers = new ArrayList<>();
+            peers.add(peer);
+            this.peers_with_chunks.put(chunkKey, peers);
+        }
+    }
+
     public void add_peer_chunks(String chunkKey, Peer peer) {
         if (this.peers_with_chunks.containsKey(chunkKey)) {
             this.peers_with_chunks.get(chunkKey).add(peer);
@@ -295,10 +294,11 @@ public class Storage implements java.io.Serializable {
     }
 
     //TODO check
-    public void remove_peer_chunks(String chunkKey, Peer peer) {
+    public void remove_peer_chunks(String chunkKey, String senderAddress, int senderPort) {
         if (this.peers_with_chunks.containsKey(chunkKey)) {
             for (int i = 0; i < this.peers_with_chunks.get(chunkKey).size(); i++) {
-                if (this.peers_with_chunks.get(chunkKey).get(i).equals(peer)) {
+                if (this.peers_with_chunks.get(chunkKey).get(i).getAddress().equals(senderAddress) &&
+                        this.peers_with_chunks.get(chunkKey).get(i).getPort() == senderPort) {
                     this.peers_with_chunks.get(chunkKey).remove(i);
                     return;
                 }
