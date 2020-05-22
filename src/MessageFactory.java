@@ -86,12 +86,11 @@ public class MessageFactory {
     //DELETE <FileId> <CRLF><CRLF>
     public Message deleteMsg(String senderAddress, int senderPort, Chunk chunk) {
 
-        String[] header = new String[5];
+        String[] header = new String[4];
         header[0] = "DELETE";
         header[1] = chunk.getFile_id();
-        header[2] = Integer.toString(chunk.getChunk_no());
-        header[3] = senderAddress;
-        header[4] = Integer.toString(senderPort);
+        header[2] = senderAddress;
+        header[3] = Integer.toString(senderPort);
 
         Message deleteMsg = new Message(header);
 
