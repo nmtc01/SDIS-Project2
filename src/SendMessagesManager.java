@@ -7,10 +7,6 @@ public class SendMessagesManager implements Runnable {
         this.sslConnection = new SSLConnection(ipAddress,port);
     }
 
-    public SendMessagesManager(Message message) {
-        this.message = message;
-    }
-
     @Override
     public void run(){
         this.sslConnection.send(message);

@@ -558,6 +558,7 @@ public class Peer extends Node implements PeerInterface, java.io.Serializable{
                     destNode = fingerTable[i];
                 else destNode = fingerTable[0];
                 threadExecutor.execute(new SendMessagesManager(msg, destNode.getAddress(), destNode.getPort()));
+                msg.printSentMessage();
 
                 try {
                     Thread.sleep(500);
@@ -565,7 +566,7 @@ public class Peer extends Node implements PeerInterface, java.io.Serializable{
                     e.printStackTrace();
                 }
                 String chunkKey = chunk.getFile_id() + "-" + chunk.getChunk_no();
-                PutChunkAttempts putChunkAttempts = new PutChunkAttempts(1, 5, msg, chunkKey, replication_degree);
+                PutChunkAttempts putChunkAttempts = new PutChunkAttempts(1, 5, msg, chunkKey, replication_degree, destNode);
                 Peer.getThreadExecutor().schedule(putChunkAttempts, 1, TimeUnit.SECONDS);
             }
         }
@@ -598,12 +599,12 @@ public class Peer extends Node implements PeerInterface, java.io.Serializable{
 
                     // TODO Select destination peer, use random index instead of 0? - Check
                     String chunkKey = fileInfo.getFileId()+'-'+chunk.getChunk_no();
-                    Utility.printPeersWithChunks(Peer.getPeer().getStorage().getPeers_with_chunks());
                     if (Peer.getPeer().getStorage().getPeers_with_chunks().containsKey(chunkKey)) {
                         Peer destPeer = getStorage().getPeers_with_chunks().get(chunkKey).get(0);
 
                         //Send message
                         Peer.getThreadExecutor().execute(new SendMessagesManager(msg, destPeer.getAddress(), destPeer.getPort()));
+                        msg.printSentMessage();
                     }
                     else return "Chunk was not backed up previously";
                 }
@@ -650,6 +651,7 @@ public class Peer extends Node implements PeerInterface, java.io.Serializable{
 
                         //Send message
                         Peer.getThreadExecutor().execute(new SendMessagesManager(msg, destNode.getAddress(), destNode.getPort()));
+                        msg.printSentMessage();
                     }
                 }
                 //Delete file
@@ -690,6 +692,7 @@ public class Peer extends Node implements PeerInterface, java.io.Serializable{
 
                         //Send message
                         Peer.getThreadExecutor().execute(new SendMessagesManager(msg, destNode.getAddress(), destNode.getPort()));
+                        msg.printSentMessage();
                     }
 
                     String filepath = storage.getDirectory().getPath() + "/file" + chunk.getFile_id() + "/chunk" + chunk.getChunk_no();
@@ -708,6 +711,7 @@ public class Peer extends Node implements PeerInterface, java.io.Serializable{
                             //TODO check this - cannot send this to me(peer) again
                             Node destNode = fingerTable[i];
                             threadExecutor.schedule(new SendMessagesManager(msg2, destNode.getAddress(), destNode.getPort()),random_value, TimeUnit.MILLISECONDS);
+                            msg2.printSentMessage();
                         }
                     }
                     chunkIterator.remove();

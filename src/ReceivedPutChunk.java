@@ -30,7 +30,7 @@ public class ReceivedPutChunk implements Runnable {
                 if (hasSpace(peerStorage)) {
                     Message msg = messageFactory.storedMsg(Peer.getPeer().getAddress(), Peer.getPeer().getPort(), this.fileId, this.chunkNo);
                     Peer.getThreadExecutor().execute(new SendMessagesManager(msg, this.senderAddress, this.senderPort));
-                    System.out.printf("Sent message: %s\n", messageFactory.getMessageString());
+                    msg.printSentMessage();
                 }
 
             }
@@ -39,7 +39,7 @@ public class ReceivedPutChunk implements Runnable {
 
                 Node succ = Peer.getPeer().getFingerTable()[0];
                 Peer.getThreadExecutor().execute(new SendMessagesManager(msg, succ.getAddress(), succ.getPort()));
-                System.out.printf("Sent message: %s\n", messageFactory.getMessageString());
+                msg.printSentMessage();
             }
         }
     }

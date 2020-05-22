@@ -21,4 +21,13 @@ public class Message implements Serializable {
     public byte[] getBody() {
         return body;
     }
+
+    public void printSentMessage() {
+        System.out.print("Sent message: ");
+        for (int i = 0; i < header.length; i++) {
+            if (i == header.length-1)
+                System.out.println(header[i]);
+            else System.out.print(header[i] + " ");
+        }
+    }
 }

@@ -23,11 +23,12 @@ public class ReceivedGetChunk implements Runnable {
     }
 
     public void sendChunk(Chunk chunk) {
-        MessageFactory messageFactory = new MessageFactory();
-        Message msg = messageFactory.chunkMsg(this.senderAddress, this.senderPort, this.fileId, this.chunkNo, chunk.getContent());
         String chunkKey = this.fileId+"-"+this.chunkNo;
         if (!Peer.getStorage().getRestoreChunks().containsKey(chunkKey)) {
-            new Thread(new SendMessagesManager(msg)).start();
+            MessageFactory messageFactory = new MessageFactory();
+            Message msg = messageFactory.chunkMsg(this.senderAddress, this.senderPort, this.fileId, this.chunkNo, chunk.getContent());
+            Peer.getThreadExecutor().execute(new SendMessagesManager(msg, this.senderAddress, this.senderPort));
+            msg.printSentMessage();
         }
     }
 }

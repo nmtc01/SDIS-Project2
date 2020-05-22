@@ -153,7 +153,7 @@ public class ReceivedMessagesManager implements Runnable {
     ////////////////////////////////
 
     private void managePutChunk(String fileId, int chunkNo, int repDeg, byte[] body, String senderAddress, int senderPort) {
-        System.out.printf("PUTCHUNK %s %d %d %s %d\n", fileId, chunkNo, repDeg, senderAddress, senderPort);
+        System.out.printf("Received message: PUTCHUNK %s %d %d %s %d\n", fileId, chunkNo, repDeg, senderAddress, senderPort);
         Random random = new Random();
         int random_value = random.nextInt(401);
         ReceivedPutChunk receivedPutChunk = new ReceivedPutChunk(fileId, chunkNo, repDeg, body, senderAddress, senderPort);
@@ -161,7 +161,7 @@ public class ReceivedMessagesManager implements Runnable {
     }
 
     private void manageStored(String fileId, int chunkNo, String senderAddress, int senderPort) {
-        System.out.printf("STORED %s %d %s %d\n", fileId, chunkNo, senderAddress, senderPort);
+        System.out.printf("Received message: STORED %s %d %s %d\n", fileId, chunkNo, senderAddress, senderPort);
         Storage peerStorage = Peer.getStorage();
         String chunkKey = fileId+"-"+chunkNo;
         peerStorage.incrementChunkOccurences(chunkKey);
@@ -170,7 +170,7 @@ public class ReceivedMessagesManager implements Runnable {
     }
 
     private void manageRemoved(String fileId, int chunkNo, String senderAddress, int senderPort) {
-        System.out.printf("REMOVED %s %d %s %d\n", fileId, chunkNo, senderAddress, senderPort);
+        System.out.printf("Received message: REMOVED %s %d %s %d\n", fileId, chunkNo, senderAddress, senderPort);
         String chunkKey = fileId +"-"+chunkNo;
         Storage peerStorage = Peer.getStorage();
         peerStorage.decrementChunkOccurences(chunkKey);
@@ -179,7 +179,7 @@ public class ReceivedMessagesManager implements Runnable {
     }
 
     private void manageGetChunk(String fileId, int chunkNo, String senderAddress, int senderPort) {
-        System.out.printf("GETCHUNK %s %d %s %d\n", fileId, chunkNo, senderAddress, senderPort);
+        System.out.printf("Received message: GETCHUNK %s %d %s %d\n", fileId, chunkNo, senderAddress, senderPort);
         Random random = new Random();
         int random_value = random.nextInt(401);
         ReceivedGetChunk receivedGetChunk = new ReceivedGetChunk(fileId, chunkNo, senderAddress, senderPort);
@@ -187,13 +187,13 @@ public class ReceivedMessagesManager implements Runnable {
     }
 
     private void manageChunk(String fileId, int chunkNo, byte[] body, String senderAddress, int senderPort) {
-        System.out.printf("CHUNK %s %d %s %d\n", fileId, chunkNo, senderAddress, senderPort);
+        System.out.printf("Received message: CHUNK %s %d %s %d\n", fileId, chunkNo, senderAddress, senderPort);
         String chunkKey = fileId+"-"+chunkNo;
         Peer.getStorage().getRestoreChunks().putIfAbsent(chunkKey, body);
     }
 
     private void manageDelete(String fileId, String senderAddress, int senderPort) {
-        System.out.printf("DELETE %s %s %d\n", fileId, senderAddress, senderPort);
+        System.out.printf("Received message: DELETE %s %s %d\n", fileId, senderAddress, senderPort);
         Random random = new Random();
         int random_value = random.nextInt(401);
         ReceivedDelete receivedDelete = new ReceivedDelete(fileId, senderAddress, senderPort);
@@ -214,9 +214,7 @@ public class ReceivedMessagesManager implements Runnable {
 
             MessageFactory messageFactory = new MessageFactory();
             Message message = messageFactory.replySuccMsg(Peer.getPeer().getNodeId(),node.getNodeId(),node.getAddress(),node.getPort());
-
             SendMessagesManager sendMessagesManager = new SendMessagesManager(message, address, port);
-
             Peer.getThreadExecutor().execute(sendMessagesManager);
         }
     }
@@ -242,9 +240,7 @@ public class ReceivedMessagesManager implements Runnable {
 
             MessageFactory messageFactory = new MessageFactory();
             Message message = messageFactory.replySuccFingerMsg(Peer.getPeer().getNodeId(),node.getNodeId(),node.getAddress(),node.getPort(),fingerId);
-
             SendMessagesManager sendMessagesManager = new SendMessagesManager(message, address, port);
-
             Peer.getThreadExecutor().execute(sendMessagesManager);
         }
 
@@ -273,7 +269,7 @@ public class ReceivedMessagesManager implements Runnable {
     }
 
     private void manageFindPred(BigInteger msgId,String address, int port ) {
-       // System.out.println("Received message: FINDPRED " + msgId +" "+ address +" "+port);
+        //System.out.println("Received message: FINDPRED " + msgId +" "+ address +" "+port);
 
         Node node = Peer.findPred();
 
@@ -286,7 +282,7 @@ public class ReceivedMessagesManager implements Runnable {
     }
 
     private void managePred(BigInteger msgId, BigInteger predId, String predAddress, int predPort) {
-       // System.out.println("Received message: PRED " + msgId + " "+ predId+" "+ predAddress+" "+predPort );
+        //System.out.println("Received message: PRED " + msgId + " "+ predId+" "+ predAddress+" "+predPort );
 
         //Node node = new Node(predId,predAddress,predPort); //TO DEBUG USE THIS
         Node node = new Node(predAddress,predPort);

@@ -35,14 +35,4 @@ public class Utility {
         return shaString.toString();
     }
 
-    public static void printPeersWithChunks(ConcurrentHashMap<String, ArrayList<Peer>> peers_with_chunks) {
-        System.out.println("olaolaolaolololo" + peers_with_chunks.keySet());
-        for (String key : peers_with_chunks.keySet()) {
-            System.out.println("Chunk: "+key);
-            for (int i = 0; i < peers_with_chunks.get(key).size(); i++) {
-                System.out.println("Peer address:port -> " + peers_with_chunks.get(key).get(i).getAddress()+":"+peers_with_chunks.get(key).get(i).getPort());
-            }
-        }
-    }
-
 }
