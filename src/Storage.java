@@ -15,7 +15,7 @@ public class Storage implements java.io.Serializable {
     private ArrayList<Chunk> storedChunks = new ArrayList<>();
     private ConcurrentHashMap<String, byte[]> restoreChunks = new ConcurrentHashMap<>();
     private ConcurrentHashMap<String, Integer> chunks_current_degrees = new ConcurrentHashMap<>();
-    private ConcurrentHashMap<String, ArrayList<Peer>> peers_with_chunks = new ConcurrentHashMap<>();
+    private ConcurrentHashMap<String, ArrayList<String[]>> peers_with_chunks = new ConcurrentHashMap<>();
     private ArrayList<FileInfo> deletedFiles = new ArrayList<>();
     private double total_space;
 
@@ -29,7 +29,7 @@ public class Storage implements java.io.Serializable {
     }
 
     //TODO check
-    public ConcurrentHashMap<String, ArrayList<Peer>> getPeers_with_chunks() {
+    public ConcurrentHashMap<String, ArrayList<String[]>> getPeers_with_chunks() {
         return this.peers_with_chunks;
     }
 
@@ -176,7 +176,7 @@ public class Storage implements java.io.Serializable {
 
         //TODO check
         //Add to peers_with_chunks
-        add_peer_chunks(chunk.getFile_id()+"-"+chunk.getChunk_no(), Peer.getPeer());
+        add_peer_chunks(chunk.getFile_id()+"-"+chunk.getChunk_no(), Peer.getPeer().getAddress(), Peer.getPeer().getPort());
     }
 
     public void exportChunk(File directory, Chunk chunk) {
@@ -270,24 +270,15 @@ public class Storage implements java.io.Serializable {
 
     //TODO check
     public void add_peer_chunks(String chunkKey, String senderAddress, int senderPort) {
-        //TODO kinda wrong to do this
-        Peer peer = new Peer(senderAddress, senderPort);
-        if (this.peers_with_chunks.containsKey(chunkKey)) {
-            this.peers_with_chunks.get(chunkKey).add(peer);
-        }
-        else {
-            ArrayList<Peer> peers = new ArrayList<>();
-            peers.add(peer);
-            this.peers_with_chunks.put(chunkKey, peers);
-        }
-    }
+        String[] peer = new String[2];
+        peer[0] = senderAddress;
+        peer[1] = Integer.toString(senderPort);
 
-    public void add_peer_chunks(String chunkKey, Peer peer) {
         if (this.peers_with_chunks.containsKey(chunkKey)) {
             this.peers_with_chunks.get(chunkKey).add(peer);
         }
         else {
-            ArrayList<Peer> peers = new ArrayList<>();
+            ArrayList<String[]> peers = new ArrayList<>();
             peers.add(peer);
             this.peers_with_chunks.put(chunkKey, peers);
         }
@@ -297,8 +288,8 @@ public class Storage implements java.io.Serializable {
     public void remove_peer_chunks(String chunkKey, String senderAddress, int senderPort) {
         if (this.peers_with_chunks.containsKey(chunkKey)) {
             for (int i = 0; i < this.peers_with_chunks.get(chunkKey).size(); i++) {
-                if (this.peers_with_chunks.get(chunkKey).get(i).getAddress().equals(senderAddress) &&
-                        this.peers_with_chunks.get(chunkKey).get(i).getPort() == senderPort) {
+                String[] peer = this.peers_with_chunks.get(chunkKey).get(i);
+                if (peer[0].equals(senderAddress) && peer[1].equals(Integer.toString(senderPort))) {
                     this.peers_with_chunks.get(chunkKey).remove(i);
                     return;
                 }
