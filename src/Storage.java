@@ -7,7 +7,7 @@ import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class Storage implements java.io.Serializable {
-    private double free_space;
+    private double free_space; // TODO: change to max space?
     private double space_used;
 
     private File directory;
