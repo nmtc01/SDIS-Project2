@@ -670,9 +670,12 @@ public class Peer extends Node implements PeerInterface, java.io.Serializable{
 
     @Override
     public synchronized String reclaim(Integer max_space) {
-
+        System.out.println("Space Requested: "  + max_space);
         double spaceUsed = storage.getOccupiedSpace();
-        double spaceClaimed = max_space; //The client shall specify the maximum disk space in KBytes (1KByte = 1000 bytes)
+        System.out.println("Space Used: "  + spaceUsed);
+
+        double spaceClaimed = max_space * 1000; //The client shall specify the maximum disk space in KBytes (1KByte = 1000 bytes)
+        System.out.println("Space Claimed: "  + spaceClaimed);
 
         double tmpSpace = spaceUsed - spaceClaimed;
 
@@ -683,19 +686,19 @@ public class Peer extends Node implements PeerInterface, java.io.Serializable{
 
             while (chunkIterator.hasNext()) {
                 Chunk chunk = chunkIterator.next();
+                System.out.println("Deleted Space: " + deletedSpace);
+                System.out.println("Temp Space: " + tmpSpace);
+
                 if (deletedSpace < tmpSpace || max_space == 0) {
                     deletedSpace += chunk.getChunk_size();
 
                     Message msg = messageFactory.reclaimMsg(Peer.getPeer().getAddress(), Peer.getPeer().getPort(), chunk);
 
-                    //TODO send reclaim message to every peer on the system?
-                    for (int j = 0; j < fingerTable.length; j++) {
-                        Node destNode = fingerTable[j];
-
-                        //Send message
-                        Peer.getThreadExecutor().execute(new SendMessagesManager(msg, destNode.getAddress(), destNode.getPort()));
-                        msg.printSentMessage();
-                    }
+                    // Send reclaim message to chunk owner
+                    Node destNode = chunk.getOwner();
+                    //Send message
+                    Peer.getThreadExecutor().execute(new SendMessagesManager(msg, destNode.getAddress(), destNode.getPort()));
+                    msg.printSentMessage();
 
                     String filepath = storage.getDirectory().getPath() + "/file" + chunk.getFile_id() + "/chunk" + chunk.getChunk_no();
                     File file = new File(filepath);
@@ -703,24 +706,12 @@ public class Peer extends Node implements PeerInterface, java.io.Serializable{
                     String chunkKey = chunk.getFile_id() + "-" + chunk.getChunk_no();
                     storage.decrementChunkOccurences(chunkKey);
 
-                    /* // Owner does the backup
-                    if (this.storage.getChunkCurrentDegree(chunkKey) < chunk.getDesired_replication_degree()) {
-                        Message msg2 = messageFactory.putChunkMsg(Peer.getPeer().getAddress(), Peer.getPeer().getPort(), chunk, chunk.getDesired_replication_degree());
-                        Random random = new Random();
-                        int random_value = random.nextInt(401);
-
-                        for (int i = this.storage.getChunkCurrentDegree(chunkKey); i < chunk.getDesired_replication_degree(); i++) {
-                            //TODO check this - cannot send this to me(peer) again
-                            Node destNode = fingerTable[i];
-                            threadExecutor.schedule(new SendMessagesManager(msg2, destNode.getAddress(), destNode.getPort()),random_value, TimeUnit.MILLISECONDS);
-                            msg2.printSentMessage();
-                        }
-                    }*/
                     chunkIterator.remove();
                 }
                 else {
                     break;
                 }
+                System.out.println(" ");
             }
 
             storage.reclaimSpace(max_space);

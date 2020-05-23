@@ -47,4 +47,8 @@ public class Chunk implements java.io.Serializable{
     public int getDesired_replication_degree() {
         return desired_replication_degree;
     }
+
+    public Node getOwner() {
+        return owner;
+    }
 }

@@ -7,7 +7,7 @@ import java.net.UnknownHostException;
 import java.nio.ByteBuffer;
 import java.security.NoSuchAlgorithmException;
 
-public class Node {
+public class Node implements java.io.Serializable {
 
     private int port;
     private String address;
