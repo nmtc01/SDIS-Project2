@@ -179,11 +179,32 @@ public class ReceivedMessagesManager implements Runnable {
         //TODO check
         peerStorage.remove_peer_chunks(chunkKey, senderAddress, senderPort);
 
-        if (peerStorage.getChunkCurrentDegree(chunkKey) < peerStorage.getChunkCurrentDegree(chunkKey)) { // TODO Change to desired degree
+        FileInfo file = null;
+        for (FileInfo fileInfo: peerStorage.getStoredFiles()) {
+            if (fileInfo.getFileId().equals(fileId)) {
+                file = fileInfo;
+            }
+        }
+        if (file == null)
+            return;
+        System.out.println("current: " + peerStorage.getChunkCurrentDegree(chunkKey) + "  initial: " + file.getReplicationDegree());
+        if (peerStorage.getChunkCurrentDegree(chunkKey) < file.getReplicationDegree()) {
+            // Get chunk from storage
+            Chunk chunk = null;
+            for (Chunk fileChunk: file.getChunks()) {
+                if (fileChunk.getChunk_no() == chunkNo){
+                    chunk = fileChunk;
+                }
+            }
+            if (chunk == null)
+                return;
+
             MessageFactory messageFactory = new MessageFactory();
-            //Chunk chunk; // TODO Get chunk from somewhere
-            //Message msg = messageFactory.putChunkMsg(Peer.getPeer().getAddress(), Peer.getPeer().getPort(), chunk, peerStorage.getChunkCurrentDegree(chunkKey));
-            //Peer.getThreadExecutor().execute(new SendMessagesManager(msg, Peer.succNode.getAddress(), Peer.succNode.getPort()));
+            Message msg = messageFactory.putChunkMsg(Peer.getPeer().getAddress(), Peer.getPeer().getPort(), chunk, peerStorage.getChunkCurrentDegree(chunkKey));
+
+            for (int i = 0; i < file.getReplicationDegree() - peerStorage.getChunkCurrentDegree(chunkKey); i++) {
+                Peer.getThreadExecutor().execute(new SendMessagesManager(msg, Peer.succNode.getAddress(), Peer.succNode.getPort()));
+            }
         }
     }
 

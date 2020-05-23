@@ -66,7 +66,7 @@ public class Storage implements java.io.Serializable {
         this.storedFiles.add(file);
 
         //Decrement free space
-        decFreeSpace(file.getFile().length());
+        //decFreeSpace(file.getFile().length());
     }
 
     public void restoreFile(File fileIn) {
@@ -102,7 +102,7 @@ public class Storage implements java.io.Serializable {
         }
         this.restoreChunks.clear();
 
-        decFreeSpace(fileOut.length());
+        //decFreeSpace(fileOut.length());
     }
 
     public void exportFile(File directory, File fileIn) {

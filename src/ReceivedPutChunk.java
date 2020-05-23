@@ -24,20 +24,18 @@ public class ReceivedPutChunk implements Runnable {
         String chunkKey = this.fileId+"-"+this.chunkNo;
         MessageFactory messageFactory = new MessageFactory();
 
-        if (peerStorage.getChunkCurrentDegree(chunkKey) < this.repDeg) {
+
+        if (peerStorage.getChunkCurrentDegree(chunkKey) < this.repDeg) { // TODO: remove this condition (blocks retransmition)
 
             int chunkIndex = peerStorage.contains(this.fileId, this.chunkNo);
 
-            if (chunkIndex == -1) {
-                if (peerStorage.hasSpace(this.body.length)) {
-                    Chunk chunk = new Chunk(this.senderAddress, this.senderPort, this.fileId, this.chunkNo, this.body.length, this.repDeg, this.body);
-                    peerStorage.storeChunk(chunk);
+            if (chunkIndex == -1 && peerStorage.hasSpace(this.body.length)) {
+                Chunk chunk = new Chunk(this.senderAddress, this.senderPort, this.fileId, this.chunkNo, this.body.length, this.repDeg, this.body);
+                peerStorage.storeChunk(chunk);
 
-                    Message msg = messageFactory.storedMsg(Peer.getPeer().getAddress(), Peer.getPeer().getPort(), this.fileId, this.chunkNo);
-                    Peer.getThreadExecutor().execute(new SendMessagesManager(msg, this.senderAddress, this.senderPort));
-                    msg.printSentMessage();
-                }
-
+                Message msg = messageFactory.storedMsg(Peer.getPeer().getAddress(), Peer.getPeer().getPort(), this.fileId, this.chunkNo);
+                Peer.getThreadExecutor().execute(new SendMessagesManager(msg, this.senderAddress, this.senderPort));
+                msg.printSentMessage();
             }
             else {
                 this.chunk = peerStorage.getStoredChunks().get(chunkIndex);
