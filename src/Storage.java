@@ -189,6 +189,19 @@ public class Storage implements java.io.Serializable {
         }
     }
 
+    public int contains(String fileId, int chunkNo) {
+        //ArrayList<Chunk> storedChunks = storage.getStoredChunks();
+
+        for (int i = 0; i < storedChunks.size(); i++) {
+            Chunk chunk = storedChunks.get(i);
+            if (chunk.getFile_id().equals(fileId) && chunk.getChunk_no() == chunkNo) {
+                return i;
+            }
+        }
+
+        return -1;
+    }
+
     public void incrementChunkOccurences(String key) {
         if (this.chunks_current_degrees.containsKey(key)) {
             this.chunks_current_degrees.replace(key, this.chunks_current_degrees.get(key) + 1);
@@ -234,6 +247,14 @@ public class Storage implements java.io.Serializable {
 
     public void reclaimSpace(double free_space) {
         this.free_space += free_space;
+    }
+
+    public boolean hasSpace(int chunkSize) {
+        if (this.getFreeSpace() >= chunkSize) {
+            return true;
+        }
+
+        return false;
     }
 
     public void deleteFile(FileInfo fileInfo) {

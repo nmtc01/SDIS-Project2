@@ -703,7 +703,7 @@ public class Peer extends Node implements PeerInterface, java.io.Serializable{
                     String chunkKey = chunk.getFile_id() + "-" + chunk.getChunk_no();
                     storage.decrementChunkOccurences(chunkKey);
 
-                    // TODO: Select destination peer
+                    /* // Owner does the backup
                     if (this.storage.getChunkCurrentDegree(chunkKey) < chunk.getDesired_replication_degree()) {
                         Message msg2 = messageFactory.putChunkMsg(Peer.getPeer().getAddress(), Peer.getPeer().getPort(), chunk, chunk.getDesired_replication_degree());
                         Random random = new Random();
@@ -715,7 +715,7 @@ public class Peer extends Node implements PeerInterface, java.io.Serializable{
                             threadExecutor.schedule(new SendMessagesManager(msg2, destNode.getAddress(), destNode.getPort()),random_value, TimeUnit.MILLISECONDS);
                             msg2.printSentMessage();
                         }
-                    }
+                    }*/
                     chunkIterator.remove();
                 }
                 else {

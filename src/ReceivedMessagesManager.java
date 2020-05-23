@@ -156,8 +156,10 @@ public class ReceivedMessagesManager implements Runnable {
         System.out.printf("Received message: PUTCHUNK %s %d %d %s %d\n", fileId, chunkNo, repDeg, senderAddress, senderPort);
         Random random = new Random();
         int random_value = random.nextInt(401);
-        ReceivedPutChunk receivedPutChunk = new ReceivedPutChunk(fileId, chunkNo, repDeg, body, senderAddress, senderPort);
-        Peer.getThreadExecutor().schedule(receivedPutChunk, random_value, TimeUnit.MILLISECONDS);
+        if (!(Peer.getPeer().getAddress().equals(senderAddress) && Peer.getPeer().getPort() == senderPort)) {
+            ReceivedPutChunk receivedPutChunk = new ReceivedPutChunk(fileId, chunkNo, repDeg, body, senderAddress, senderPort);
+            Peer.getThreadExecutor().schedule(receivedPutChunk, random_value, TimeUnit.MILLISECONDS);
+        }
     }
 
     private void manageStored(String fileId, int chunkNo, String senderAddress, int senderPort) {
@@ -176,6 +178,13 @@ public class ReceivedMessagesManager implements Runnable {
         peerStorage.decrementChunkOccurences(chunkKey);
         //TODO check
         peerStorage.remove_peer_chunks(chunkKey, senderAddress, senderPort);
+
+        if (peerStorage.getChunkCurrentDegree(chunkKey) < peerStorage.getChunkCurrentDegree(chunkKey)) { // TODO Change to desired degree
+            MessageFactory messageFactory = new MessageFactory();
+            //Chunk chunk; // TODO Get chunk from somewhere
+            //Message msg = messageFactory.putChunkMsg(Peer.getPeer().getAddress(), Peer.getPeer().getPort(), chunk, peerStorage.getChunkCurrentDegree(chunkKey));
+            //Peer.getThreadExecutor().execute(new SendMessagesManager(msg, Peer.succNode.getAddress(), Peer.succNode.getPort()));
+        }
     }
 
     private void manageGetChunk(String fileId, int chunkNo, String senderAddress, int senderPort) {

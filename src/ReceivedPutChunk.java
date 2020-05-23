@@ -26,8 +26,13 @@ public class ReceivedPutChunk implements Runnable {
 
         if (peerStorage.getChunkCurrentDegree(chunkKey) < this.repDeg) {
 
-            if (!contains(peerStorage)) {
-                if (hasSpace(peerStorage)) {
+            int chunkIndex = peerStorage.contains(this.fileId, this.chunkNo);
+
+            if (chunkIndex == -1) {
+                if (peerStorage.hasSpace(this.body.length)) {
+                    Chunk chunk = new Chunk(this.senderAddress, this.senderPort, this.fileId, this.chunkNo, this.body.length, this.repDeg, this.body);
+                    peerStorage.storeChunk(chunk);
+
                     Message msg = messageFactory.storedMsg(Peer.getPeer().getAddress(), Peer.getPeer().getPort(), this.fileId, this.chunkNo);
                     Peer.getThreadExecutor().execute(new SendMessagesManager(msg, this.senderAddress, this.senderPort));
                     msg.printSentMessage();
@@ -35,6 +40,7 @@ public class ReceivedPutChunk implements Runnable {
 
             }
             else {
+                this.chunk = peerStorage.getStoredChunks().get(chunkIndex);
                 Message msg = messageFactory.putChunkMsg(this.senderAddress, this.senderPort, this.chunk, this.repDeg);
 
                 Node succ = Peer.getPeer().getFingerTable()[0];
