@@ -33,6 +33,7 @@ public class ReceivedMessagesManager implements Runnable {
 
             switch (subProtocol) {
                 case "PUTCHUNK": {
+                    System.out.println("Received");
                     String fileId = header[1];
                     int chunkNo = Integer.parseInt(header[2]);
                     int repDeg = Integer.parseInt(header[3]);

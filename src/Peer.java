@@ -689,7 +689,7 @@ public class Peer extends Node implements PeerInterface, java.io.Serializable{
                 System.out.println("Deleted Space: " + deletedSpace);
                 System.out.println("Temp Space: " + tmpSpace);
 
-                if (deletedSpace < tmpSpace || max_space == 0) {
+                if (deletedSpace < tmpSpace) {
                     deletedSpace += chunk.getChunk_size();
 
                     Message msg = messageFactory.reclaimMsg(Peer.getPeer().getAddress(), Peer.getPeer().getPort(), chunk);
