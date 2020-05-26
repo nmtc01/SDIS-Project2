@@ -24,7 +24,7 @@ public class ReceivedPutChunk implements Runnable {
 
         Chunk chunk = new Chunk(this.senderAddress, this.senderPort, this.fileId, this.chunkNo, this.body.length, this.repDeg, this.body);
 
-        if (peerStorage.contains(this.fileId, this.chunkNo) && peerStorage.hasSpace(this.body.length)) {
+        if (!peerStorage.contains(this.fileId, this.chunkNo) && peerStorage.hasSpace(this.body.length)) {
             peerStorage.storeChunk(chunk);
 
             Message msg = messageFactory.storedMsg(Peer.getPeer().getAddress(), Peer.getPeer().getPort(), this.fileId, this.chunkNo);

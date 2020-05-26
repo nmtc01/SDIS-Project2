@@ -142,6 +142,10 @@ public class Storage implements java.io.Serializable {
                 remove_peer_chunks(chunk.getFile_id()+"-"+chunk.getChunk_no(), Peer.getPeer().getAddress(), Peer.getPeer().getPort());
             }
         }
+        deleteDirectory(fileId);
+    }
+
+    public void deleteDirectory(String fileId) {
         String fileFolder = directory.getPath() + "/file" + fileId;
         File folder = new File(fileFolder);
         folder.delete();

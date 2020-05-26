@@ -703,6 +703,8 @@ public class Peer extends Node implements PeerInterface, java.io.Serializable{
                     String filepath = storage.getDirectory().getPath() + "/file" + chunk.getFile_id() + "/chunk" + chunk.getChunk_no();
                     File file = new File(filepath);
                     file.delete();
+                    storage.deleteDirectory(chunk.getFile_id());
+
                     String chunkKey = chunk.getFile_id() + "-" + chunk.getChunk_no();
                     storage.decrementChunkOccurences(chunkKey);
 

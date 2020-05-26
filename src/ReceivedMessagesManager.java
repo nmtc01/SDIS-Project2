@@ -33,7 +33,6 @@ public class ReceivedMessagesManager implements Runnable {
 
             switch (subProtocol) {
                 case "PUTCHUNK": {
-                    System.out.println("Received");
                     String fileId = header[1];
                     int chunkNo = Integer.parseInt(header[2]);
                     int repDeg = Integer.parseInt(header[3]);
@@ -205,6 +204,7 @@ public class ReceivedMessagesManager implements Runnable {
 
             for (int i = 0; i < file.getReplicationDegree() - peerStorage.getChunkCurrentDegree(chunkKey); i++) {
                 Peer.getThreadExecutor().execute(new SendMessagesManager(msg, Peer.succNode.getAddress(), Peer.succNode.getPort()));
+                msg.printSentMessage();
             }
         }
     }
