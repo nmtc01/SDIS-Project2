@@ -1,5 +1,3 @@
-import java.util.ArrayList;
-
 public class ReceivedPutChunk implements Runnable {
     private String fileId;
     private int chunkNo;
@@ -24,7 +22,6 @@ public class ReceivedPutChunk implements Runnable {
         String chunkKey = this.fileId+"-"+this.chunkNo;
         MessageFactory messageFactory = new MessageFactory();
 
-        //if (peerStorage.getChunkCurrentDegree(chunkKey) < this.repDeg) { // remove this condition (blocks retransmition)
         Chunk chunk = new Chunk(this.senderAddress, this.senderPort, this.fileId, this.chunkNo, this.body.length, this.repDeg, this.body);
 
         if (peerStorage.contains(this.fileId, this.chunkNo) && peerStorage.hasSpace(this.body.length)) {
@@ -40,29 +37,6 @@ public class ReceivedPutChunk implements Runnable {
             Peer.getThreadExecutor().execute(new SendMessagesManager(msg, succ.getAddress(), succ.getPort()));
             msg.printSentMessage();
         }
-        //}
+
     }
-
-    /*public boolean contains(Storage storage) {
-        ArrayList<Chunk> storedChunks = storage.getStoredChunks();
-
-        for (int i = 0; i < storedChunks.size(); i++) {
-            Chunk chunk = storedChunks.get(i);
-            if (chunk.getFile_id().equals(this.fileId) && chunk.getChunk_no() == this.chunkNo) {
-                this.chunk = chunk;
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    public boolean hasSpace(Storage storage) {
-        if (storage.getFreeSpace() >= this.body.length) {
-            Chunk chunk = new Chunk(this.fileId, this.chunkNo, this.body.length, this.repDeg, this.body);
-            storage.storeChunk(chunk);
-            return true;
-        }
-        else return false;
-    }*/
 }
