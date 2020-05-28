@@ -13,7 +13,7 @@ public class MessageFactory {
     /// BACKUP PROTOCOL MESSAGES ///
     ////////////////////////////////
 
-    //PUTCHUNK <FileId> <ChunkNo> <ReplicationDeg> <CRLF><CRLF><Body>
+    //PUTCHUNK <FileId> <ChunkNo> <ReplicationDeg> <SenderAddress> <SenderPort>
     public Message putChunkMsg(String senderAddress, int senderPort, Chunk chunk, Integer replication_degree) {
 
         String[] header = new String[6];
@@ -32,7 +32,7 @@ public class MessageFactory {
         return putchunkMsg;
     }
 
-    //STORED <FileId> <ChunkNo> <CRLF><CRLF>
+    //STORED <FileId> <ChunkNo> <SenderAddress> <SenderPort>
     public Message storedMsg(String senderAddress, int senderPort, String fileId, int chunkNo) {
 
         String[] header = new String[5];
@@ -49,7 +49,7 @@ public class MessageFactory {
         return storedMsg;
     }
 
-    //GETCHUNK <FileId> <ChunkNo> <CRLF><CRLF>
+    //GETCHUNK <FileId> <ChunkNo> <SenderAddress> <SenderPort>
     public Message getChunkMsg(String senderAddress, int senderPort, String fileId, int chunkNo) {
 
         String[] header = new String[5];
@@ -66,7 +66,7 @@ public class MessageFactory {
         return getChunkMsg;
     }
 
-    //CHUNK <FileId> <ChunkNo> <CRLF><CRLF><Body>
+    //CHUNK <FileId> <ChunkNo> <SenderAddress> <SenderPort>
     public Message chunkMsg(String senderAddress, int senderPort, String fileId, int chunkNo, byte[] body) {
 
         String[] header = new String[5];
@@ -83,7 +83,7 @@ public class MessageFactory {
         return chunkMsg;
     }
 
-    //DELETE <FileId> <CRLF><CRLF>
+    //DELETE <FileId> <SenderAddress> <SenderPort>
     public Message deleteMsg(String senderAddress, int senderPort, Chunk chunk) {
 
         String[] header = new String[4];
@@ -99,7 +99,7 @@ public class MessageFactory {
         return deleteMsg;
     }
 
-    //REMOVED <FileId> <ChunkNo> <CRLF><CRLF>
+    //REMOVED <FileId> <ChunkNo> <SenderAddress> <SenderPort>
     public Message reclaimMsg(String senderAddress, int senderPort, Chunk chunk) {
 
         String[] header = new String[5];
@@ -120,7 +120,7 @@ public class MessageFactory {
     /// CHORD MESSAGES ///
     //////////////////////
 
-    //FINDSUCC <SenderId> <ReqIpAdress> <ReqPort> <ReqId> <CRLF><CRLF>
+    //FINDSUCC <SenderId> <ReqIpAdress> <ReqPort> <ReqId>
     public Message findSuccMsg(BigInteger msgId, String ip, int port, BigInteger id) {
         String[] header = new String[5];
         header[0] = "FINDSUCC";
@@ -136,7 +136,7 @@ public class MessageFactory {
         return findSucc;
     }
 
-    //SUCC <SenderId> <SuccId> <SuccAddress> <SuccPort> <CRLF><CRLF>
+    //SUCC <SenderId> <SuccId> <SuccAddress> <SuccPort>
     public Message replySuccMsg(BigInteger msgId, BigInteger succId, String succAddress, int succPort) {
 
         String[] header = new String[5];
@@ -153,7 +153,7 @@ public class MessageFactory {
         return replySucc;
     }
 
-    //FINDSUCCFINGER <SenderId> <ReqIpAdress> <ReqPort> <ReqId> <FingerId> <CRLF><CRLF>
+    //FINDSUCCFINGER <SenderId> <ReqIpAdress> <ReqPort> <ReqId> <FingerId>
     public Message findSuccFingerMsg(BigInteger msgId, String ip, int port, BigInteger id, int fingerId) {
 
         String[] header = new String[6];
@@ -172,7 +172,7 @@ public class MessageFactory {
 
     }
 
-    //FINGERSUCC <SenderId> <SuccId> <SuccAddress> <SuccPort> <FingerId> <CRLF><CRLF>
+    //FINGERSUCC <SenderId> <SuccId> <SuccAddress> <SuccPort> <FingerId>
     public Message replySuccFingerMsg(BigInteger msgId, BigInteger succId, String succAddress, int succPort, int fingerId) {
 
         String[] header = new String[6];
@@ -190,7 +190,7 @@ public class MessageFactory {
         return replySucc;
     }
 
-    //NOTIFY <SenderId> <ReqIpAdress> <ReqPort> <CRLF><CRLF>
+    //NOTIFY <SenderId> <ReqIpAdress> <ReqPort>
     public Message notifyMsg(BigInteger msgId, String address, int port) {
 
         String[] header = new String[4];

@@ -549,7 +549,6 @@ public class Peer extends Node implements PeerInterface, java.io.Serializable{
             Message msg = messageFactory.putChunkMsg(Peer.getPeer().getAddress(), Peer.getPeer().getPort(), chunk, replication_degree);
 
             for (int i = 0; i < chunk.getDesired_replication_degree(); i++) {
-                //TODO check this
                 Node destNode;
                 if (i < fingerTable.length)
                     destNode = fingerTable[i];
@@ -650,7 +649,7 @@ public class Peer extends Node implements PeerInterface, java.io.Serializable{
                             String[] destNode = peers_with_chunk.get(j);
                             //Send message
                             Peer.getThreadExecutor().execute(new SendMessagesManager(msg, destNode[0], Integer.parseInt(destNode[1])));
-                            System.out.println("Para "+destNode[0]+":"+destNode[1]);
+                            System.out.println("To "+destNode[0]+":"+destNode[1]);
                             msg.printSentMessage();
                         }
                         storage.remove_entry_peer_chunks(chunkKey);
