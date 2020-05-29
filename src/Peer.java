@@ -468,8 +468,6 @@ public class Peer extends Node implements PeerInterface, java.io.Serializable{
              if (predNode == null || !node.getNodeId().equals(predNode.getNodeId())) {
                  predNode = node;
 
-                 //todo function to update storage, give storage
-
                  if (succNode.getNodeId().equals(this.getNodeId())) {
                      succNode = node;
                      fingerTable[0] = node;
@@ -606,10 +604,7 @@ public class Peer extends Node implements PeerInterface, java.io.Serializable{
                     else return "Chunk was not backed up previously";
                 }
 
-                //TODO check - blocks here
-                while(fileInfo.getChunks().size() != storage.getRestoreChunks().size()) {}
-
-                Peer.getThreadExecutor().execute(new RestoreChunks(file));
+                Peer.getThreadExecutor().execute(new RestoreChunks(file, fileInfo.getChunks().size()));
                 break;
             }
         }
@@ -782,12 +777,6 @@ public class Peer extends Node implements PeerInterface, java.io.Serializable{
 
         System.out.println("\nPrinting Finger Table...");
 
-        /*for(int i=0; i < fingerTable.length; i++){
-            System.out.println(" - F["+i+"] - " +fingerTable[i].getNodeId());
-
-        }*/
-
-        //System.out.println(" - F[0] - " +fingerTable[0].getNodeId());
         System.out.println("SUCC - "+succNode.getNodeId());
         if(predNode != null)
             System.out.println("PRED - "+predNode.getNodeId());
@@ -795,6 +784,3 @@ public class Peer extends Node implements PeerInterface, java.io.Serializable{
         System.out.println(" ");
     }
 }
-
-
-//TODO check if protocols work fine with free space - if they are decrementing it

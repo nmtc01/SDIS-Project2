@@ -42,10 +42,22 @@ public class SSLConnection implements Runnable {
                 Peer.predNode = null;
                 System.out.println("Server - Failed to connect to predecessor");
             }
+            else if (
+                    msg.getHeader()[0].equals("PUTCHUNK") ||
+                    msg.getHeader()[0].equals("STORED") ||
+                    msg.getHeader()[0].equals("GETCHUNK") ||
+                    msg.getHeader()[0].equals("CHUNK") ||
+                    msg.getHeader()[0].equals("DELETE") ||
+                    msg.getHeader()[0].equals("REMOVED") ||
+                    msg.getHeader()[0].equals("NOTIFY") // Prevent blocking when successor isnt found
+            ) {
+                System.out.println("Error - Failed to connect with peer");
+            }
             else {
                 Peer.unlockStabilize();
-                System.out.println(Peer.latchStabilize.getCount());
-                e.printStackTrace();
+                System.out.println("Error - Failed to connect with peer\nStabilizing");
+                //System.out.println(Peer.latchStabilize.getCount());
+                //e.printStackTrace();
             }
         }
     }

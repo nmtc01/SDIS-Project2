@@ -23,7 +23,6 @@ public class Storage implements java.io.Serializable {
         createPeerDirectory();
     }
 
-    //TODO check
     public ConcurrentHashMap<String, ArrayList<String[]>> getPeers_with_chunks() {
         return this.peers_with_chunks;
     }
@@ -138,7 +137,6 @@ public class Storage implements java.io.Serializable {
                 chunkIterator.remove();
                 decrementChunkOccurences(chunk.getFile_id()+"-"+chunk.getChunk_no());
 
-                //TODO check
                 remove_peer_chunks(chunk.getFile_id()+"-"+chunk.getChunk_no(), Peer.getPeer().getAddress(), Peer.getPeer().getPort());
             }
         }
@@ -172,8 +170,6 @@ public class Storage implements java.io.Serializable {
 
         //Decrement free space
         decFreeSpace(chunk.getContent().length);
-
-        //TODO check
         //Add to peers_with_chunks
         add_peer_chunks(chunk.getFile_id()+"-"+chunk.getChunk_no(), Peer.getPeer().getAddress(), Peer.getPeer().getPort());
     }
@@ -288,7 +284,6 @@ public class Storage implements java.io.Serializable {
         return this.directory;
     }
 
-    //TODO check
     public void add_peer_chunks(String chunkKey, String senderAddress, int senderPort) {
         String[] peer = new String[2];
         peer[0] = senderAddress;
@@ -304,7 +299,6 @@ public class Storage implements java.io.Serializable {
         }
     }
 
-    //TODO check
     public void remove_peer_chunks(String chunkKey, String senderAddress, int senderPort) {
         if (this.peers_with_chunks.containsKey(chunkKey)) {
             for (int i = 0; i < this.peers_with_chunks.get(chunkKey).size(); i++) {
