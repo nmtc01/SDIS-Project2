@@ -1,10 +1,6 @@
 import java.io.UnsupportedEncodingException;
-import java.nio.ByteBuffer;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.concurrent.ConcurrentHashMap;
 
 public class Utility {
     public static byte[] sha1(String string) throws NoSuchAlgorithmException, UnsupportedEncodingException {

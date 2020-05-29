@@ -1,5 +1,4 @@
 import java.io.*;
-import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Iterator;
@@ -20,6 +19,7 @@ public class Storage implements java.io.Serializable {
 
     public Storage() {
         this.free_space = 1000000000;
+        this.space_used = 0;
         createPeerDirectory();
     }
 
@@ -231,6 +231,7 @@ public class Storage implements java.io.Serializable {
     }
 
     public double getOccupiedSpace() {
+
         for (Chunk chunk : this.storedChunks) {
             space_used += chunk.getChunk_size();
         }

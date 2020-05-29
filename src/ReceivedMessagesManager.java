@@ -1,8 +1,6 @@
 import javax.net.ssl.SSLSocket;
 import java.io.*;
 import java.math.BigInteger;
-import java.nio.ByteBuffer;
-import java.util.Arrays;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
 
@@ -167,7 +165,6 @@ public class ReceivedMessagesManager implements Runnable {
         Storage peerStorage = Peer.getStorage();
         String chunkKey = fileId+"-"+chunkNo;
         peerStorage.incrementChunkOccurences(chunkKey);
-        //TODO check
         peerStorage.add_peer_chunks(chunkKey, senderAddress, senderPort);
     }
 
@@ -176,7 +173,6 @@ public class ReceivedMessagesManager implements Runnable {
         String chunkKey = fileId +"-"+chunkNo;
         Storage peerStorage = Peer.getStorage();
         peerStorage.decrementChunkOccurences(chunkKey);
-        //TODO check
         peerStorage.remove_peer_chunks(chunkKey, senderAddress, senderPort);
 
         FileInfo file = null;

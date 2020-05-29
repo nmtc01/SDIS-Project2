@@ -1,5 +1,3 @@
-import javax.net.ssl.SSLSocket;
-import javax.net.ssl.SSLSocketFactory;
 import java.io.*;
 import java.math.BigInteger;
 import java.rmi.registry.LocateRegistry;
@@ -25,7 +23,7 @@ public class Peer extends Node implements PeerInterface, java.io.Serializable{
     private static String initIpAddress;
     private static int initPort;
     private static Node[] fingerTable = new Node[m];
-    private static ScheduledThreadPoolExecutor threadExecutor; //TODO use this instead of thread
+    private static ScheduledThreadPoolExecutor threadExecutor;
 
     public static Node predNode;
     public static Node succNode;
@@ -138,8 +136,9 @@ public class Peer extends Node implements PeerInterface, java.io.Serializable{
             peer = new Peer(ipAddress, port);
         }
 
-        /* TODO DEBUG WITH M=4
-       if (args.length == 6) {
+        /*
+        //DEBUG WITH M=4
+        if (args.length == 6) {
             peer = new Peer(Integer.parseInt(args[5]),ipAddress, port, initIpAddress, initPort);
         }
         else {
@@ -388,7 +387,8 @@ public class Peer extends Node implements PeerInterface, java.io.Serializable{
 
         stabilizeX = succNode.requestFindPred(this.getNodeId(),this.getAddress(),this.getPort());
 
-        System.out.println("STABILIZE - locking...");
+        //TO DEBUG
+        //System.out.println("STABILIZE - locking...");
 
         try {
             latchStabilize.await();
@@ -397,13 +397,16 @@ public class Peer extends Node implements PeerInterface, java.io.Serializable{
         }
 
         latchStabilize =  new CountDownLatch(1);
+
         //TO DEBUG
-        if(stabilizeX != null)
-            System.out.println("STABILIZED - "+stabilizeX.getNodeId());
-        else System.out.println("UNLOCKED");
+        if(stabilizeX != null) {
+            //System.out.println("STABILIZED - "+stabilizeX.getNodeId());
+        }
+        else {
+            //System.out.println("UNLOCKED");
+        }
 
         //check if X falls between (n,successor)
-
         if(stabilizeX != null
                 && ! this.getNodeId().equals(stabilizeX.getNodeId() )
                 && ( fallsBetween(stabilizeX.getNodeId(), this.getNodeId(), succNode.getNodeId()) || this.getNodeId().equals(succNode.getNodeId()) )
@@ -500,7 +503,6 @@ public class Peer extends Node implements PeerInterface, java.io.Serializable{
      * CHECK PREDECESSOR
      * called periodically, checks whether predecessor has failed
      */
-
     public void checkPred(){
         /* PSEUDO CODE
         if(predecessor has failed)
@@ -775,7 +777,7 @@ public class Peer extends Node implements PeerInterface, java.io.Serializable{
 
     public void printFingerTable(){
 
-        System.out.println("\nPrinting Finger Table...");
+        System.out.println("\nStatus:");
 
         System.out.println("SUCC - "+succNode.getNodeId());
         if(predNode != null)
