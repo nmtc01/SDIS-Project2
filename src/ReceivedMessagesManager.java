@@ -299,11 +299,15 @@ public class ReceivedMessagesManager implements Runnable {
         Node node = Peer.findPred();
 
         MessageFactory messageFactory = new MessageFactory();
-        Message message = messageFactory.predMsg(Peer.getPeer().getNodeId(),node.getNodeId(),node.getAddress(),node.getPort());
 
-        SendMessagesManager sendMessagesManager = new SendMessagesManager(message, address, port);
+        try {
+            Message message = messageFactory.predMsg(Peer.getPeer().getNodeId(),node.getNodeId(),node.getAddress(),node.getPort());
 
-        Peer.getThreadExecutor().execute(sendMessagesManager);
+            SendMessagesManager sendMessagesManager = new SendMessagesManager(message, address, port);
+            Peer.getThreadExecutor().execute(sendMessagesManager);
+        } catch (Exception e) {
+            System.out.println("Error - Predecessor is null");
+        }
     }
 
     private void managePred(BigInteger msgId, BigInteger predId, String predAddress, int predPort) {
